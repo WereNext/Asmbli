@@ -221,7 +221,7 @@ export default function HomePage() {
             </Link>
             <Link href="/contribute">
               <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Join the Community
+                Join Beta Waitlist
               </Button>
             </Link>
           </div>

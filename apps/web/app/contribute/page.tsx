@@ -1,428 +1,421 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowRight, Bot, Code, Zap, Users, Server, FileText, GitBranch, Bug, Lightbulb, Heart, ExternalLink, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Bot, Zap, Users, Shield, CheckCircle, Sparkles, Eye, Clock } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import { Footer } from '@/components/Footer'
 
-export default function ContributePage() {
+function BetaSignupForm() {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    useCase: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      const response = await fetch('/.netlify/functions/beta-signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ firstName: '', lastName: '', email: '', useCase: '' });
+      } else {
+        throw new Error('Submission failed');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  if (submitStatus === 'success') {
+    return (
+      <div className="text-center py-8">
+        <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+        <h3 className="text-2xl font-semibold text-green-700 mb-2">You're on the list!</h3>
+        <p className="text-muted-foreground max-w-md mx-auto">
+          Thanks for joining the Asmbli beta waitlist. We'll notify you as soon as early access is available.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="firstName" className="block text-sm font-medium mb-1">First Name</label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            placeholder="Your first name"
+            value={formData.firstName}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-warm-400 focus:border-transparent bg-white"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium mb-1">Last Name</label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            placeholder="Your last name"
+            value={formData.lastName}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-warm-400 focus:border-transparent bg-white"
+            required
+          />
+        </div>
+      </div>
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium mb-1">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="you@company.com"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-warm-400 focus:border-transparent bg-white"
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="useCase" className="block text-sm font-medium mb-1">What will you use Asmbli for? (Optional)</label>
+        <textarea
+          id="useCase"
+          name="useCase"
+          placeholder="Tell us about your use case - what kind of agents do you want to build?"
+          value={formData.useCase}
+          onChange={handleChange}
+          rows={3}
+          className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-warm-400 focus:border-transparent resize-none bg-white"
+        />
+      </div>
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-warm-500 hover:bg-warm-600 text-warm-50 py-3 text-lg disabled:opacity-50"
+      >
+        {isSubmitting ? 'Joining...' : 'Join the Beta Waitlist'}
+      </Button>
+      {submitStatus === 'error' && (
+        <p className="text-red-600 text-center text-sm">
+          Something went wrong. Please try again or email us directly at beta@asmbli.io
+        </p>
+      )}
+    </form>
+  );
+}
+
+export default function BetaWaitlistPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navigation */}
       <Navigation />
 
       {/* Hero Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-green-50/20 to-background">
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-warm-50/20 to-background">
         <div className="container mx-auto max-w-4xl text-center">
+          <div className="inline-flex items-center gap-2 bg-warm-100 text-warm-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Sparkles className="h-4 w-4" />
+            Early Access Coming Soon
+          </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic mb-4 sm:mb-6 font-display leading-tight">
-            Become a Contributor
+            Join the Asmbli Beta
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-            Help us build the most honest and useful AI chat application. We welcome contributions of all kinds -
-            from bug reports to new features, documentation to design improvements.
+            Be among the first to experience the future of AI agent orchestration.
+            Get early access to build, chain, and control AI agents with full transparency.
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-            <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white">
-                <GitBranch className="mr-2 h-5 w-5" />
-                View on GitHub
-              </Button>
-            </Link>
-            <Link href="https://github.com/WereNext/Asmbli/issues/new" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Report an Issue
-              </Button>
-            </Link>
-          </div>
         </div>
       </section>
 
-      {/* Ways to Contribute */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 font-display">
-              Ways to Contribute
-            </h2>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Every contribution matters, whether you're fixing a typo or adding a major feature
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <Card className="text-center border-2 hover:border-green-200 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Bug className="h-6 w-6 text-red-600" />
-                </div>
-                <CardTitle className="text-lg">Report Bugs</CardTitle>
-                <CardDescription>
-                  Found a bug? Help us fix it! Create detailed bug reports with steps to reproduce.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="https://github.com/WereNext/Asmbli/issues/new?template=bug_report.md" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Report Bug
-                    <ExternalLink className="ml-2 h-3 w-3" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-green-200 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Lightbulb className="h-6 w-6 text-blue-600" />
-                </div>
-                <CardTitle className="text-lg">Suggest Features</CardTitle>
-                <CardDescription>
-                  Have ideas for improvement? We'd love to hear them! Suggest realistic, useful features.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="https://github.com/WereNext/Asmbli/issues/new?template=feature_request.md" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Suggest Feature
-                    <ExternalLink className="ml-2 h-3 w-3" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-green-200 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Code className="h-6 w-6 text-green-600" />
-                </div>
-                <CardTitle className="text-lg">Write Code</CardTitle>
-                <CardDescription>
-                  Flutter developer? Help us improve the chat interface, agent templates, or design system.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="https://github.com/WereNext/Asmbli/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Good First Issues
-                    <ExternalLink className="ml-2 h-3 w-3" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-green-200 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <FileText className="h-6 w-6 text-purple-600" />
-                </div>
-                <CardTitle className="text-lg">Improve Documentation</CardTitle>
-                <CardDescription>
-                  Help make Asmbli more accessible with better docs, tutorials, and setup guides.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="https://github.com/WereNext/Asmbli/tree/main/docs" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="w-full">
-                    View Docs
-                    <ExternalLink className="ml-2 h-3 w-3" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-green-200 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Server className="h-6 w-6 text-orange-600" />
-                </div>
-                <CardTitle className="text-lg">Test MCP Servers</CardTitle>
-                <CardDescription>
-                  Help us figure out which MCP servers actually work reliably with our integration.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="https://github.com/WereNext/Asmbli/issues?q=is%3Aissue+is%3Aopen+label%3Amcp" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="w-full">
-                    MCP Issues
-                    <ExternalLink className="ml-2 h-3 w-3" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-green-200 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Heart className="h-6 w-6 text-pink-600" />
-                </div>
-                <CardTitle className="text-lg">Share & Support</CardTitle>
-                <CardDescription>
-                  Star the repo, share with others, write blog posts, or help users in discussions.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="https://github.com/WereNext/Asmbli/discussions" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Join Discussions
-                    <ExternalLink className="ml-2 h-3 w-3" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Current State & Roadmap */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-yellow-50/10">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 font-display">
-              Project Status & Roadmap
-            </h2>
-            <p className="text-base sm:text-lg text-muted-foreground px-4">
-              Honest assessment of what works, what doesn't, and where we're headed
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* What Works Well */}
-            <Card className="border-2 border-green-300/20 bg-green-50/10">
-              <CardHeader>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  </div>
-                  <CardTitle>✅ What Works Well</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Multi-model chat (Claude, OpenAI, local)</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Real-time streaming responses</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Secure API key storage (OS keychain)</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Local conversation history</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Cross-platform Flutter desktop app</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Beautiful multi-color design system</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Known Issues */}
-            <Card className="border-2 border-amber-300/20 bg-amber-50/10">
-              <CardHeader>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                    <AlertTriangle className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <CardTitle>⚠️ Known Issues</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Agent responses can hallucinate</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">MCP integration is unreliable</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Document context gets lost in long chats</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">No agent deployment capabilities</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Limited error handling for API failures</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-1 flex-shrink-0" />
-                  <span className="text-sm">Vector search is basic and may not scale</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="mt-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>🚀 Near-term Roadmap</CardTitle>
-                <CardDescription>
-                  Our focus areas for the next few months (in order of priority)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-green-500 pl-4">
-                    <h4 className="font-semibold">1. Improve Core Chat Experience</h4>
-                    <p className="text-sm text-muted-foreground">Better error handling, connection stability, and message reliability</p>
-                  </div>
-                  <div className="border-l-4 border-blue-500 pl-4">
-                    <h4 className="font-semibold">2. Fix Agent Template System</h4>
-                    <p className="text-sm text-muted-foreground">Make agent configurations more reliable and less prone to hallucination</p>
-                  </div>
-                  <div className="border-l-4 border-purple-500 pl-4">
-                    <h4 className="font-semibold">3. Document Context Improvements</h4>
-                    <p className="text-sm text-muted-foreground">Better chunking, context management, and relevance in long conversations</p>
-                  </div>
-                  <div className="border-l-4 border-orange-500 pl-4">
-                    <h4 className="font-semibold">4. MCP Server Compatibility</h4>
-                    <p className="text-sm text-muted-foreground">Test and document which servers actually work reliably</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Getting Started as Contributor */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 font-display">
-              Getting Started as a Contributor
-            </h2>
-            <p className="text-base sm:text-lg text-muted-foreground px-4">
-              Ready to contribute? Here's how to set up your development environment
-            </p>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Development Setup</CardTitle>
-              <CardDescription>
-                Set up Asmbli for local development in a few steps
+      {/* Signup Form Section */}
+      <section className="py-12 sm:py-16 px-4">
+        <div className="container mx-auto max-w-xl">
+          <Card className="border-2 border-warm-200 shadow-xl">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-2xl">Request Early Access</CardTitle>
+              <CardDescription className="text-base">
+                Join the waitlist and we'll notify you when beta access is available
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-sm font-bold text-green-700">1</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Prerequisites</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                      <li>Flutter SDK (&gt;=3.0.0)</li>
-                      <li>Dart SDK (&gt;=3.0.0)</li>
-                      <li>Git</li>
-                      <li>Your favorite IDE (VS Code, Kiro, Cursor)</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-sm font-bold text-green-700">2</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Clone and Setup</h4>
-                    <div className="bg-gray-100 rounded-lg p-3 text-sm font-mono">
-                      <p>git clone https://github.com/WereNext/Asmbli.git</p>
-                      <p>cd asmbli</p>
-                      <p>cd apps/desktop && flutter pub get</p>
-                      <p>cd ../../packages/agent_engine_core && flutter pub get</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-sm font-bold text-green-700">3</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Run the App</h4>
-                    <div className="bg-gray-100 rounded-lg p-3 text-sm font-mono">
-                      <p>cd apps/desktop</p>
-                      <p>flutter run</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-sm font-bold text-green-700">4</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Read the Guidelines</h4>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Check out our contribution guidelines and development setup
-                    </p>
-                    <Link href="https://github.com/WereNext/Asmbli/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="sm">
-                        Read CONTRIBUTING.md
-                        <ExternalLink className="ml-2 h-3 w-3" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
+            <CardContent className="pt-6">
+              <BetaSignupForm />
             </CardContent>
           </Card>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-green-50/30 to-blue-50/30">
+      {/* What You'll Get Section */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-warm-50/10">
+        <div className="container mx-auto">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 font-display">
+              What Beta Members Get
+            </h2>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+              Early access comes with exclusive benefits
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
+              <CardHeader className="pb-6 pt-8">
+                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Clock className="h-6 w-6 text-warm-600" />
+                </div>
+                <CardTitle className="text-lg">Early Access</CardTitle>
+                <CardDescription>
+                  Be first to use new features before they're publicly available
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
+              <CardHeader className="pb-6 pt-8">
+                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Users className="h-6 w-6 text-warm-600" />
+                </div>
+                <CardTitle className="text-lg">Direct Feedback</CardTitle>
+                <CardDescription>
+                  Shape the product roadmap with direct access to our team
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
+              <CardHeader className="pb-6 pt-8">
+                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Eye className="h-6 w-6 text-warm-600" />
+                </div>
+                <CardTitle className="text-lg">Glass Box Access</CardTitle>
+                <CardDescription>
+                  Full visibility into agent reasoning and decision-making
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
+              <CardHeader className="pb-6 pt-8">
+                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Shield className="h-6 w-6 text-warm-600" />
+                </div>
+                <CardTitle className="text-lg">Founder Pricing</CardTitle>
+                <CardDescription>
+                  Lock in special pricing that stays with you forever
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* What's Coming Section */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 font-display">
+              What We're Building
+            </h2>
+            <p className="text-base sm:text-lg text-muted-foreground px-4">
+              A glimpse at what's coming in the Asmbli beta
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
+                    <Bot className="h-5 w-5 text-warm-600" />
+                  </div>
+                  <CardTitle>Chain of Agents</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Orchestrate multi-agent workflows where specialized agents collaborate -
+                  research agents hand off to analysts, who hand off to writers.
+                  Watch the entire chain work in real-time.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
+                    <Eye className="h-5 w-5 text-warm-600" />
+                  </div>
+                  <CardTitle>Glass Box AI</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  See every reasoning step, every tool call, every decision your agents make.
+                  No black boxes - full transparency into how your AI thinks and acts.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-warm-600" />
+                  </div>
+                  <CardTitle>Live Task Control</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Pause, modify, or redirect agent tasks mid-execution.
+                  Stay in control with real-time intervention capabilities
+                  and the ability to adjust agent behavior on the fly.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
+                    <Shield className="h-5 w-5 text-warm-600" />
+                  </div>
+                  <CardTitle>50+ Tool Integrations</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Connect agents to GitHub, databases, Slack, file systems, and more
+                  via MCP servers. Real capabilities that let your agents
+                  actually do things in the real world.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-warm-50/10">
+        <div className="container mx-auto max-w-3xl">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 font-display">
+              Frequently Asked Questions
+            </h2>
+          </div>
+
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">When will beta access be available?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  We're rolling out beta access in waves starting soon. Join the waitlist to secure your spot -
+                  earlier signups get priority access.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Is Asmbli free during beta?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Beta members get free access to all features during the beta period.
+                  You'll also lock in special founder pricing when we launch publicly.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">What do I need to use Asmbli?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Asmbli runs on Windows, macOS, and Linux. You'll need your own API keys for
+                  AI providers (Claude, OpenAI, etc.) or you can use local models via Ollama for
+                  complete privacy.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Is my data private?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Absolutely. Asmbli is local-first - your conversations, agent configurations,
+                  and workflows stay on your device. We never see or store your data.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-warm-100/30 to-warm-50/30">
         <div className="container mx-auto max-w-2xl text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 font-display">
-            Ready to Contribute?
+            Ready to Own Your AI Experience?
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8 px-4">
-            Join our community of contributors building the most honest AI chat application.
-            Every contribution - big or small - makes a difference.
+            Join thousands of developers and teams waiting to build the next generation of AI agents.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white">
-                <GitBranch className="mr-2 h-5 w-5" />
-                Start Contributing
-              </Button>
-            </Link>
-            <Link href="https://github.com/WereNext/Asmbli/discussions" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Join Discussions
-              </Button>
-            </Link>
-          </div>
+          <Link href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+            <Button size="lg" className="bg-warm-500 hover:bg-warm-600 text-warm-50">
+              Join the Beta Waitlist
+            </Button>
+          </Link>
 
           <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center items-center text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>MIT Licensed</span>
+              <span>No credit card required</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Welcoming Community</span>
+              <span>Early access priority</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>All Skill Levels Welcome</span>
+              <span>Founder pricing locked in</span>
             </div>
           </div>
         </div>

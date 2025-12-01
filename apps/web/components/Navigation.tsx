@@ -63,7 +63,7 @@ export function Navigation({ showBackButton = false, backHref = '/', backLabel =
               href="/contribute"
               className={`hover:underline text-sm ${isActive('/contribute') ? 'font-semibold text-foreground' : ''}`}
             >
-              Contribute
+              Beta Waitlist
             </Link>
             <Link href="/chat">
               <Button>View Demo</Button>
@@ -118,7 +118,7 @@ export function Navigation({ showBackButton = false, backHref = '/', backLabel =
                 className={`hover:text-primary transition-colors ${isActive('/contribute') ? 'font-semibold text-foreground' : ''}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Contribute
+                Beta Waitlist
               </Link>
               <Link href="/chat" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button className="w-full">View Demo</Button>
