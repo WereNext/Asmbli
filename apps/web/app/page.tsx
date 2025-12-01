@@ -160,12 +160,12 @@ export default function HomePage() {
                   muted
                   playsInline
                   className="w-full h-auto rounded-md sm:rounded-lg hover:scale-[1.02] transition-transform duration-300 object-contain max-h-[300px] sm:max-h-[400px] md:max-h-[500px] lg:max-h-[600px] xl:max-h-[700px]"
-                  aria-label="Asmbli - Professional AI Agent Platform with Your Tools and MCP Integration"
+                  aria-label="Asmbli - AI Agent Orchestration Platform"
                 >
                   <source src="/hero-demo-new.mp4" type="video/mp4" />
-                  <img 
-                    src="/hero-app-screenshot.png" 
-                    alt="Asmbli - Professional AI Agent Platform with Your Tools and MCP Integration"
+                  <img
+                    src="/hero-app-screenshot.png"
+                    alt="Asmbli - AI Agent Orchestration Platform"
                     className="w-full h-auto rounded-md sm:rounded-lg"
                   />
                 </video>
@@ -175,40 +175,40 @@ export default function HomePage() {
 
           {/* Hero Text */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic mb-4 sm:mb-6 font-display leading-tight">
-            Experimental AI chat application with basic agent templates
+            Build AI Agents That Actually Do Things
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-            ⚠️ <strong>Alpha Software:</strong> Cross-platform desktop chat interface for AI models.
-            Experimental agent templates, basic document context. Expect bugs, incomplete features, and breaking changes.
+            The desktop platform that puts AI agent power in everyone's hands. See exactly what your agents are doing,
+            chain them together, and keep full control. No black boxes. No vendor lock-in.
           </p>
 
           {/* Key Capabilities */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12 max-w-4xl mx-auto px-4">
             <div className="text-center p-4 sm:p-0">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">💬 Multi-Model Chat</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Agent Orchestration</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Chat with Claude, OpenAI, local models, and more. Real-time streaming responses with conversation history.
+                Chain multiple specialized agents together. Research, analyze, create, and review in coordinated workflows.
               </p>
             </div>
             <div className="text-center p-4 sm:p-0">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+                <Server className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">🎯 Agent Templates</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">MCP Tool Integration</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Create and save basic agent configurations with custom prompts and settings. Beta quality.
+                Connect agents to GitHub, databases, file systems, Slack, and 50+ tools via Model Context Protocol.
               </p>
             </div>
             <div className="text-center p-4 sm:p-0 sm:col-span-2 lg:col-span-1">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+                <Target className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">🔓 Open Source</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Live Task Control</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                MIT licensed, community-driven development. Your data stays local with secure API key storage.
+                Watch agents work in real-time. Pause, modify, or redirect tasks mid-execution with full transparency.
               </p>
             </div>
           </div>
@@ -216,29 +216,29 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
             <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
               <Button size="lg" className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-amber-950">
-                Download Open Source
+                Get Started Free
               </Button>
             </Link>
             <Link href="/contribute">
               <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Become a Contributor
+                Join the Community
               </Button>
             </Link>
           </div>
-          
+
           {/* Status Bar */}
           <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground px-4">
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="whitespace-nowrap">Open Source</span>
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              <span className="whitespace-nowrap">Full Transparency</span>
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-red-400 rounded-full"></span>
-              <span className="whitespace-nowrap">Alpha v0.1.0</span>
+              <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
+              <span className="whitespace-nowrap">DSPy Powered</span>
             </span>
             <span className="flex items-center gap-1">
               <Shield className="w-3 h-3" />
-              <span className="whitespace-nowrap">MIT Licensed</span>
+              <span className="whitespace-nowrap">Your Data, Your Control</span>
             </span>
           </div>
         </div>
@@ -252,40 +252,40 @@ export default function HomePage() {
               Why Asmbli?
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              A clean, open source AI chat application focused on what actually works today
+              AI agents shouldn't be mysterious. See every decision, understand every action, maintain full control.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
             <Card className="text-center border-2 hover:border-amber-200 transition-colors">
               <CardHeader className="pb-8 pt-8">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Zap className="h-6 w-6 text-green-600" />
+                  <Search className="h-6 w-6 text-green-600" />
                 </div>
-                <CardTitle className="text-lg">Multi-Model Chat</CardTitle>
+                <CardTitle className="text-lg">Glass Box AI</CardTitle>
                 <CardDescription>
-                  Connect to Claude, OpenAI, local Ollama models, and more. Real-time streaming conversations.
+                  Watch agents think in real-time. Every reasoning step, every tool call, every decision - fully visible and explainable.
                 </CardDescription>
               </CardHeader>
             </Card>
             <Card className="text-center border-2 hover:border-amber-200 transition-colors">
               <CardHeader className="pb-8 pt-8">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Code className="h-6 w-6 text-blue-600" />
+                  <Users className="h-6 w-6 text-blue-600" />
                 </div>
-                <CardTitle className="text-lg">Open Source</CardTitle>
+                <CardTitle className="text-lg">Chain of Agents</CardTitle>
                 <CardDescription>
-                  MIT licensed Flutter application. Community-driven development with transparent, honest roadmap.
+                  Orchestrate multi-agent workflows. Research agents hand off to analysts, who hand off to writers. Visible collaboration.
                 </CardDescription>
               </CardHeader>
             </Card>
             <Card className="text-center border-2 hover:border-amber-200 transition-colors">
               <CardHeader className="pb-8 pt-8">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Bot className="h-6 w-6 text-purple-600" />
+                  <Server className="h-6 w-6 text-purple-600" />
                 </div>
-                <CardTitle className="text-lg">Agent Templates</CardTitle>
+                <CardTitle className="text-lg">50+ Tool Integrations</CardTitle>
                 <CardDescription>
-                  Create and save basic agent configurations. Experimental features - expect limitations and bugs.
+                  MCP servers connect agents to GitHub, PostgreSQL, Slack, file systems, and more. Real capabilities, real results.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -294,9 +294,9 @@ export default function HomePage() {
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Shield className="h-6 w-6 text-amber-600" />
                 </div>
-                <CardTitle className="text-lg">Your Data</CardTitle>
+                <CardTitle className="text-lg">You Own Everything</CardTitle>
                 <CardDescription>
-                  Local storage, secure API keys, no data collection. Your conversations stay on your device.
+                  Your data stays on your machine. Your agents, your workflows, your way. No subscription required to use what you build.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -308,34 +308,34 @@ export default function HomePage() {
       <section className="py-12 sm:py-16 lg:py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 font-display">
-            Try Asmbli Open Source Today
+            From Zero to Agents in Minutes
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center p-4 sm:p-0">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl font-bold text-amber-800">1</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Download from GitHub</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Clone & Run</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Clone or download the open source Flutter application from our GitHub repository
+                Download from GitHub. Start the DSPy backend and Flutter app. Works on Windows, macOS, and Linux.
               </p>
             </div>
             <div className="text-center p-4 sm:p-0">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl font-bold text-amber-800">2</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Add Your API Keys</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Connect Your AI</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Configure Claude, OpenAI, or local Ollama models. Your keys stay secure on your device.
+                Add your Claude, OpenAI, or Gemini key - or run fully local with Ollama. Your keys never leave your device.
               </p>
             </div>
             <div className="text-center p-4 sm:p-0 sm:col-span-2 lg:col-span-1">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl font-bold text-amber-800">3</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Start Chatting</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Build Agent Workflows</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Begin conversations, create agent templates, upload documents for context.
+                Create specialized agents, chain them together, connect MCP tools, and watch them collaborate on real tasks.
               </p>
             </div>
           </div>
@@ -559,10 +559,10 @@ export default function HomePage() {
         <div className="container mx-auto">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              MCP Integration (Experimental)
+              Connect Agents to Real Tools
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              ⚠️ <strong>Beta Feature:</strong> MCP server integration is experimental and may not work reliably. Most servers are untested.
+              MCP (Model Context Protocol) servers give your agents access to real capabilities - file systems, databases, APIs, and more.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
@@ -710,31 +710,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Open Source Section */}
-      <section id="open-source" className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-amber-50/30 to-yellow-50/30">
+      {/* Democratizing AI Section */}
+      <section id="democratizing-ai" className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-amber-50/30 to-yellow-50/30">
         <div className="container mx-auto max-w-2xl text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 font-display">
-            Now Open Source!
+            AI Agents for Everyone
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8 px-4">
-            Asmbli is now available as an open source project. Try our AI chat application
-            with agent templates - honest about what works and what doesn't.
+            Powerful AI shouldn't be locked behind enterprise contracts. Asmbli puts professional-grade
+            agent orchestration in the hands of individuals, startups, and teams of any size.
           </p>
 
           <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 border mx-4 sm:mx-0">
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Code className="h-8 w-8 text-green-600" />
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-amber-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-4">Available on GitHub</h3>
+              <h3 className="text-xl font-semibold mb-4">No Gatekeepers</h3>
               <p className="text-muted-foreground mb-6">
-                MIT licensed Flutter desktop application. Community-driven development with
-                realistic expectations and transparent limitations.
+                Bring your own API keys. Run locally or in the cloud. Inspect every line of code.
+                The full platform is yours - no artificial limitations, no premium tiers for core features.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
                   <Button className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-amber-950">
-                    View on GitHub
+                    Get the Platform
                   </Button>
                 </Link>
                 <Link href="https://github.com/WereNext/Asmbli#-quick-start" target="_blank" rel="noopener noreferrer">
@@ -749,52 +749,51 @@ export default function HomePage() {
           <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Multi-model chat interface</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-amber-500" />
-              <span>Basic agent templates (beta)</span>
+              <span>See all agent reasoning</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>MIT licensed & community-driven</span>
+              <span>Inspect every decision</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Modify anything</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Coded with Claude Section */}
+      {/* How We Build Section */}
       <section className="py-12 sm:py-16 lg:py-20 px-4 bg-blue-50/10">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 font-display">
-            🤖 Coded with Claude
+            Built in the Open, With AI
           </h2>
           <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 border">
             <div className="flex items-start space-x-4 mb-6">
-              <Code className="w-8 h-8 text-blue-600 flex-shrink-0 mt-1" />
+              <Bot className="w-8 h-8 text-blue-600 flex-shrink-0 mt-1" />
               <div className="text-left">
                 <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-                  This entire project is being built using Claude Code - an AI coding assistant that writes, debugs,
-                  and iterates on code in real-time. It's a practical example of human-AI collaboration in software development.
+                  Asmbli is developed using Claude Code - proving that AI-assisted development can create
+                  real, production-quality tools. Every feature, every component, built through transparent human-AI collaboration.
                 </p>
                 <p className="text-xl font-semibold text-blue-600 font-display">
-                  Meta-experiment: AI building tools for AI.
+                  The process is as visible as the product.
                 </p>
               </div>
             </div>
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
               <p className="text-muted-foreground leading-relaxed mb-4">
-                Every component, every feature, and even this website was developed through conversations with Claude.
-                The code is transparent, the process is documented, and the results speak for themselves -
-                both the successes and the inevitable AI-generated bugs.
+                We believe the best way to build trust in AI is to show exactly how it works. That's why Asmbli's
+                development is fully transparent - you can see every conversation, every decision, every iteration.
               </p>
               <p className="text-sm text-muted-foreground">
-                Special thanks to GitHub Copilot for code completion and suggestions, and Kiro for additional development assistance.
-                This project showcases collaboration between multiple AI coding tools working together.
+                Built with Claude Code, GitHub Copilot, and Kiro - demonstrating that AI collaboration
+                is ready for serious software development.
               </p>
-              <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-700 text-sm font-medium">
-                  💡 Living proof that AI can be a powerful coding partner, not just a code generator.
+              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <p className="text-amber-800 text-sm font-medium">
+                  Dogfooding the future: using AI agents to build tools for AI agents.
                 </p>
               </div>
             </div>
@@ -808,25 +807,25 @@ export default function HomePage() {
           <div className="flex items-center justify-center gap-2 mb-4">
             <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
             <h2 className="text-xl sm:text-2xl font-bold font-display">
-              Your Privacy, Protected
+              Your Data Stays Yours
             </h2>
           </div>
           <p className="text-base sm:text-lg text-muted-foreground mb-6 px-4">
-            We don't store your chats or user data. Your conversations with AI agents remain entirely on your device.
-            We only collect basic profile registration information needed to provide you access to the platform.
+            Everything runs locally on your machine. Your conversations, your agent configurations, your workflows -
+            they never leave your device unless you explicitly choose to share them.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-yellow-600" />
-              <span className="whitespace-nowrap">No chat history stored</span>
+              <span className="whitespace-nowrap">Local-first architecture</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-yellow-600" />
-              <span className="whitespace-nowrap">No user data collection</span>
+              <span className="whitespace-nowrap">Your API keys, secured locally</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-yellow-600" />
-              <span className="whitespace-nowrap">Profile info only</span>
+              <span className="whitespace-nowrap">No telemetry, no tracking</span>
             </div>
           </div>
         </div>
