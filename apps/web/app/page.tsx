@@ -219,7 +219,7 @@ export default function HomePage() {
                 Get Started Free
               </Button>
             </Link>
-            <Link href="/contribute">
+            <Link href="/beta">
               <Button size="lg" variant="outline" className="w-full sm:w-auto">
                 Join Beta Waitlist
               </Button>

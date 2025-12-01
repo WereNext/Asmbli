@@ -60,8 +60,8 @@ export function Navigation({ showBackButton = false, backHref = '/', backLabel =
               Download
             </Link>
             <Link
-              href="/contribute"
-              className={`hover:underline text-sm ${isActive('/contribute') ? 'font-semibold text-foreground' : ''}`}
+              href="/beta"
+              className={`hover:underline text-sm ${isActive('/beta') ? 'font-semibold text-foreground' : ''}`}
             >
               Beta Waitlist
             </Link>
@@ -114,8 +114,8 @@ export function Navigation({ showBackButton = false, backHref = '/', backLabel =
                 Download
               </Link>
               <Link
-                href="/contribute"
-                className={`hover:text-primary transition-colors ${isActive('/contribute') ? 'font-semibold text-foreground' : ''}`}
+                href="/beta"
+                className={`hover:text-primary transition-colors ${isActive('/beta') ? 'font-semibold text-foreground' : ''}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Beta Waitlist
