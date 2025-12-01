@@ -24,12 +24,18 @@ function BetaSignupForm() {
     setSubmitStatus('idle');
 
     try {
-      const response = await fetch('/.netlify/functions/beta-signup', {
+      // Netlify Forms requires URL-encoded data
+      const formBody = new URLSearchParams({
+        'form-name': 'beta-waitlist',
+        ...formData
+      }).toString();
+
+      const response = await fetch('/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify(formData),
+        body: formBody,
       });
 
       if (response.ok) {
@@ -65,7 +71,10 @@ function BetaSignupForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" data-netlify="true" name="beta-waitlist">
+      {/* Hidden field for Netlify Forms */}
+      <input type="hidden" name="form-name" value="beta-waitlist" />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="firstName" className="block text-sm font-medium mb-1">First Name</label>
@@ -135,9 +144,24 @@ function BetaSignupForm() {
   );
 }
 
+// Hidden form for Netlify to detect at build time (required for JS-rendered forms)
+function NetlifyFormDetection() {
+  return (
+    <form name="beta-waitlist" data-netlify="true" hidden>
+      <input type="text" name="firstName" />
+      <input type="text" name="lastName" />
+      <input type="email" name="email" />
+      <textarea name="useCase" />
+    </form>
+  );
+}
+
 export default function BetaWaitlistPage() {
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Hidden form for Netlify detection at build time */}
+      <NetlifyFormDetection />
+
       {/* Navigation */}
       <Navigation />
 
