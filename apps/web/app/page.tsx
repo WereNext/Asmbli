@@ -88,7 +88,7 @@ function BetaSignupForm() {
             placeholder="First Name"
             value={formData.firstName}
             onChange={handleChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-warm-400 focus:border-transparent"
             required
           />
         </div>
@@ -99,7 +99,7 @@ function BetaSignupForm() {
             placeholder="Last Name"
             value={formData.lastName}
             onChange={handleChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-warm-400 focus:border-transparent"
             required
           />
         </div>
@@ -111,7 +111,7 @@ function BetaSignupForm() {
           placeholder="Email Address"
           value={formData.email}
           onChange={handleChange}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+          className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-warm-400 focus:border-transparent"
           required
         />
       </div>
@@ -122,13 +122,13 @@ function BetaSignupForm() {
           value={formData.useCase}
           onChange={handleChange}
           rows={3}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
+          className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-warm-400 focus:border-transparent resize-none"
         />
       </div>
       <Button 
         type="submit" 
         disabled={isSubmitting}
-        className="w-full bg-amber-400 hover:bg-amber-500 text-amber-950 py-3 text-lg disabled:opacity-50"
+        className="w-full bg-warm-500 hover:bg-warm-600 text-warm-50 py-3 text-lg disabled:opacity-50"
       >
         {isSubmitting ? 'Submitting...' : 'Request Beta Access'}
       </Button>
@@ -148,7 +148,7 @@ export default function HomePage() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-yellow-50/20 to-background">
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-warm-50/20 to-background">
         <div className="container mx-auto max-w-4xl text-center">
           {/* Hero Screenshot First */}
           <div className="mb-8 sm:mb-12">
@@ -185,8 +185,8 @@ export default function HomePage() {
           {/* Key Capabilities */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12 max-w-4xl mx-auto px-4">
             <div className="text-center p-4 sm:p-0">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-warm-600" />
               </div>
               <h3 className="font-semibold mb-2 text-sm sm:text-base">Agent Orchestration</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -194,8 +194,8 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-center p-4 sm:p-0">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <Server className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                <Server className="h-5 w-5 sm:h-6 sm:w-6 text-warm-600" />
               </div>
               <h3 className="font-semibold mb-2 text-sm sm:text-base">MCP Tool Integration</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -203,8 +203,8 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-center p-4 sm:p-0 sm:col-span-2 lg:col-span-1">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <Target className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                <Target className="h-5 w-5 sm:h-6 sm:w-6 text-warm-600" />
               </div>
               <h3 className="font-semibold mb-2 text-sm sm:text-base">Live Task Control</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -215,7 +215,7 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
             <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-amber-950">
+              <Button size="lg" className="w-full sm:w-auto bg-warm-500 hover:bg-warm-600 text-warm-50">
                 Get Started Free
               </Button>
             </Link>
@@ -233,7 +233,7 @@ export default function HomePage() {
               <span className="whitespace-nowrap">Full Transparency</span>
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
+              <span className="w-2 h-2 bg-warm-400 rounded-full"></span>
               <span className="whitespace-nowrap">DSPy Powered</span>
             </span>
             <span className="flex items-center gap-1">
@@ -245,7 +245,7 @@ export default function HomePage() {
       </section>
 
       {/* Why Asmbli Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-yellow-50/10">
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-warm-50/10">
         <div className="container mx-auto">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 font-display">
@@ -256,7 +256,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
-            <Card className="text-center border-2 hover:border-amber-200 transition-colors">
+            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
               <CardHeader className="pb-8 pt-8">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Search className="h-6 w-6 text-green-600" />
@@ -267,7 +267,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="text-center border-2 hover:border-amber-200 transition-colors">
+            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
               <CardHeader className="pb-8 pt-8">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Users className="h-6 w-6 text-blue-600" />
@@ -278,7 +278,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="text-center border-2 hover:border-amber-200 transition-colors">
+            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
               <CardHeader className="pb-8 pt-8">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Server className="h-6 w-6 text-purple-600" />
@@ -289,10 +289,10 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="text-center border-2 hover:border-amber-200 transition-colors">
+            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
               <CardHeader className="pb-8 pt-8">
-                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Shield className="h-6 w-6 text-amber-600" />
+                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Shield className="h-6 w-6 text-warm-600" />
                 </div>
                 <CardTitle className="text-lg">You Own Everything</CardTitle>
                 <CardDescription>
@@ -312,8 +312,8 @@ export default function HomePage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center p-4 sm:p-0">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <span className="text-xl sm:text-2xl font-bold text-amber-800">1</span>
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <span className="text-xl sm:text-2xl font-bold text-warm-700">1</span>
               </div>
               <h3 className="font-semibold mb-2 text-sm sm:text-base">Clone & Run</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -321,8 +321,8 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-center p-4 sm:p-0">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <span className="text-xl sm:text-2xl font-bold text-amber-800">2</span>
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <span className="text-xl sm:text-2xl font-bold text-warm-700">2</span>
               </div>
               <h3 className="font-semibold mb-2 text-sm sm:text-base">Connect Your AI</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -330,8 +330,8 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-center p-4 sm:p-0 sm:col-span-2 lg:col-span-1">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <span className="text-xl sm:text-2xl font-bold text-amber-800">3</span>
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <span className="text-xl sm:text-2xl font-bold text-warm-700">3</span>
               </div>
               <h3 className="font-semibold mb-2 text-sm sm:text-base">Build Agent Workflows</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -342,7 +342,7 @@ export default function HomePage() {
 
           <div className="mt-8 sm:mt-12 px-4">
             <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-amber-950">
+              <Button size="lg" className="w-full sm:w-auto bg-warm-500 hover:bg-warm-600 text-warm-50">
                 Get Started on GitHub
               </Button>
             </Link>
@@ -351,7 +351,7 @@ export default function HomePage() {
       </section>
 
       {/* What's an API Key Section */}
-      <section className="py-20 px-4 bg-yellow-50/10">
+      <section className="py-20 px-4 bg-warm-50/10">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 font-display">
@@ -364,11 +364,11 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* What is an API Key */}
-            <Card className="border-2 border-yellow-300/20 bg-yellow-50/10">
+            <Card className="border-2 border-warm-300/20 bg-warm-50/10">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
-                    <Key className="h-5 w-5 text-yellow-600" />
+                  <div className="w-10 h-10 bg-warm-200/50 rounded-lg flex items-center justify-center">
+                    <Key className="h-5 w-5 text-warm-600" />
                   </div>
                   <CardTitle>Cloud AI with Your API Key</CardTitle>
                 </div>
@@ -435,11 +435,11 @@ export default function HomePage() {
           </div>
 
           {/* Provider Data Safety Policies */}
-          <Card className="border-2 border-yellow-300/30 bg-yellow-50/20">
+          <Card className="border-2 border-warm-300/30 bg-warm-50/20">
             <CardHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                  <Lock className="h-5 w-5 text-yellow-700" />
+                <div className="w-10 h-10 bg-warm-300/50 rounded-lg flex items-center justify-center">
+                  <Lock className="h-5 w-5 text-warm-700" />
                 </div>
                 <CardTitle>Provider Data Safety Policies</CardTitle>
               </div>
@@ -480,7 +480,7 @@ export default function HomePage() {
                 {/* Google */}
                 <div className="space-y-2">
                   <h4 className="font-semibold flex items-center gap-2">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-warm-400 rounded-full"></div>
                     Google (Gemini)
                   </h4>
                   <ul className="space-y-1 text-sm text-muted-foreground ml-4">
@@ -491,9 +491,9 @@ export default function HomePage() {
                   </ul>
                 </div>
 
-                <div className="mt-6 p-4 bg-yellow-200/20 rounded-lg border border-yellow-300/20">
+                <div className="mt-6 p-4 bg-warm-100/50 rounded-lg border border-warm-300/20">
                   <p className="text-sm flex items-start gap-2">
-                    <Shield className="h-4 w-4 text-yellow-700 mt-0.5 flex-shrink-0" />
+                    <Shield className="h-4 w-4 text-warm-700 mt-0.5 flex-shrink-0" />
                     <span>
                       <strong>Key Point:</strong> When you use your own API key with Asmbli, your data goes directly to your chosen provider. 
                       We never see, store, or process your conversations - ensuring maximum privacy and compliance with your provider's security policies.
@@ -555,7 +555,7 @@ export default function HomePage() {
       </section>
 
       {/* MCP Servers Library Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-yellow-50/10">
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-warm-50/10">
         <div className="container mx-auto">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
@@ -566,7 +566,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-blue-500" />
@@ -577,7 +577,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <SiGit className="h-5 w-5 text-orange-500" />
@@ -588,7 +588,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <SiGithub className="h-5 w-5 text-gray-800" />
@@ -599,7 +599,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <SiPostgresql className="h-5 w-5 text-blue-600" />
@@ -610,7 +610,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Database className="h-5 w-5 text-purple-500" />
@@ -621,7 +621,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <SiBrave className="h-5 w-5 text-orange-600" />
@@ -632,7 +632,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Server className="h-5 w-5 text-green-500" />
@@ -643,7 +643,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <SiFigma className="h-5 w-5 text-purple-600" />
@@ -654,7 +654,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Monitor className="h-5 w-5 text-blue-700" />
@@ -665,7 +665,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <SiSlack className="h-5 w-5 text-purple-700" />
@@ -676,7 +676,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <SiNotion className="h-5 w-5 text-black" />
@@ -687,7 +687,7 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow bg-yellow-50/10 border-yellow-200/20">
+            <Card className="hover:shadow-lg transition-shadow bg-warm-50/10 border-warm-200/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <SiLinear className="h-5 w-5 text-blue-800" />
@@ -711,7 +711,7 @@ export default function HomePage() {
       </section>
 
       {/* Democratizing AI Section */}
-      <section id="democratizing-ai" className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-amber-50/30 to-yellow-50/30">
+      <section id="democratizing-ai" className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-warm-100/30 to-warm-50/30">
         <div className="container mx-auto max-w-2xl text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 font-display">
             AI Agents for Everyone
@@ -723,8 +723,8 @@ export default function HomePage() {
 
           <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 border mx-4 sm:mx-0">
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-amber-600" />
+              <div className="w-16 h-16 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-warm-600" />
               </div>
               <h3 className="text-xl font-semibold mb-4">No Gatekeepers</h3>
               <p className="text-muted-foreground mb-6">
@@ -733,7 +733,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
-                  <Button className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-amber-950">
+                  <Button className="w-full sm:w-auto bg-warm-500 hover:bg-warm-600 text-warm-50">
                     Get the Platform
                   </Button>
                 </Link>
@@ -791,8 +791,8 @@ export default function HomePage() {
                 Built with Claude Code, GitHub Copilot, and Kiro - demonstrating that AI collaboration
                 is ready for serious software development.
               </p>
-              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <p className="text-amber-800 text-sm font-medium">
+              <div className="mt-4 bg-warm-100 border border-warm-200 rounded-lg p-4">
+                <p className="text-warm-700 text-sm font-medium">
                   Dogfooding the future: using AI agents to build tools for AI agents.
                 </p>
               </div>
@@ -802,10 +802,10 @@ export default function HomePage() {
       </section>
 
       {/* Privacy Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-yellow-50/10">
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-warm-50/10">
         <div className="container mx-auto max-w-3xl text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
+            <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-warm-600" />
             <h2 className="text-xl sm:text-2xl font-bold font-display">
               Your Data Stays Yours
             </h2>
@@ -816,15 +816,15 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-yellow-600" />
+              <CheckCircle className="h-4 w-4 text-warm-600" />
               <span className="whitespace-nowrap">Local-first architecture</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-yellow-600" />
+              <CheckCircle className="h-4 w-4 text-warm-600" />
               <span className="whitespace-nowrap">Your API keys, secured locally</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-yellow-600" />
+              <CheckCircle className="h-4 w-4 text-warm-600" />
               <span className="whitespace-nowrap">No telemetry, no tracking</span>
             </div>
           </div>

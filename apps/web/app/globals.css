@@ -2,50 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Asmbli Theme - Warm Neutral (matching desktop app) */
 @layer base {
   :root {
-    --background: 146 20% 88%;
-    --foreground: 132 6% 20%;
-    --card: 148 22% 92%;
-    --card-foreground: 132 6% 20%;
-    --popover: 148 22% 92%;
-    --popover-foreground: 132 6% 20%;
-    --primary: 121 26% 34%;
-    --primary-foreground: 150 25% 95%;
-    --secondary: 144 18% 82%;
-    --secondary-foreground: 132 6% 20%;
-    --muted: 142 16% 74%;
-    --muted-foreground: 136 10% 44%;
-    --accent: 142 16% 74%;
-    --accent-foreground: 132 6% 20%;
+    /* Warm cream/beige backgrounds - #FCFBF9 → #FAF8F5 → #F0E6D6 */
+    --background: 40 20% 98%;
+    --foreground: 25 30% 15%;
+
+    /* Card surfaces - warm off-white */
+    --card: 38 25% 97%;
+    --card-foreground: 25 30% 15%;
+    --popover: 38 25% 97%;
+    --popover-foreground: 25 30% 15%;
+
+    /* Primary - warm brown #8B6F47 */
+    --primary: 33 32% 41%;
+    --primary-foreground: 40 30% 97%;
+
+    /* Secondary/muted - warm beige tones */
+    --secondary: 36 20% 90%;
+    --secondary-foreground: 25 30% 20%;
+    --muted: 35 18% 88%;
+    --muted-foreground: 28 15% 40%;
+
+    /* Accent - warm gold/amber */
+    --accent: 38 70% 50%;
+    --accent-foreground: 25 30% 15%;
+
+    /* Semantic */
     --destructive: 0 65% 50%;
-    --destructive-foreground: 150 25% 95%;
-    --border: 140 14% 65%;
-    --input: 148 22% 92%;
-    --ring: 121 26% 34%;
+    --destructive-foreground: 40 30% 97%;
+
+    /* Borders - warm gray/beige */
+    --border: 35 15% 80%;
+    --input: 38 20% 94%;
+    --ring: 33 32% 41%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 115 20% 12%;
-    --foreground: 150 25% 95%;
-    --card: 117 22% 16%;
-    --card-foreground: 150 25% 95%;
-    --popover: 117 22% 16%;
-    --popover-foreground: 150 25% 95%;
-    --primary: 135 40% 75%;
-    --primary-foreground: 115 20% 12%;
-    --secondary: 119 24% 24%;
-    --secondary-foreground: 148 22% 85%;
-    --muted: 119 24% 24%;
-    --muted-foreground: 138 12% 55%;
-    --accent: 119 24% 24%;
-    --accent-foreground: 148 22% 85%;
+    /* Deep warm brown backgrounds - #1F1611 → #2B1F14 → #3D2B1F */
+    --background: 20 30% 10%;
+    --foreground: 38 30% 95%;
+
+    /* Card surfaces - warm dark brown */
+    --card: 22 28% 14%;
+    --card-foreground: 38 30% 95%;
+    --popover: 22 28% 14%;
+    --popover-foreground: 38 30% 95%;
+
+    /* Primary - warm gold/cream #E6C794 */
+    --primary: 38 55% 74%;
+    --primary-foreground: 20 30% 10%;
+
+    /* Secondary/muted - warm brown tones */
+    --secondary: 24 25% 20%;
+    --secondary-foreground: 36 25% 85%;
+    --muted: 24 25% 20%;
+    --muted-foreground: 32 18% 55%;
+
+    /* Accent */
+    --accent: 24 25% 20%;
+    --accent-foreground: 36 25% 85%;
+
+    /* Semantic */
     --destructive: 0 65% 50%;
-    --destructive-foreground: 150 25% 95%;
-    --border: 119 24% 24%;
-    --input: 119 24% 24%;
-    --ring: 135 40% 75%;
+    --destructive-foreground: 38 30% 95%;
+
+    /* Borders */
+    --border: 24 20% 22%;
+    --input: 24 20% 22%;
+    --ring: 38 55% 74%;
   }
 }
 
@@ -55,14 +82,26 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: 
-      linear-gradient(
-        to bottom right,
-        hsl(146, 20%, 88%),
-        hsl(148, 22%, 92%),
-        hsl(150, 25%, 95%)
+    /* Warm neutral gradient - cream center fading to beige edges */
+    background-image:
+      radial-gradient(
+        ellipse at top center,
+        hsl(40, 20%, 98%) 0%,
+        hsl(38, 22%, 96%) 40%,
+        hsl(35, 18%, 92%) 100%
       );
     min-height: 100vh;
+  }
+
+  .dark body {
+    /* Dark warm gradient - warm brown center to darker edges */
+    background-image:
+      radial-gradient(
+        ellipse at top center,
+        hsl(22, 28%, 14%) 0%,
+        hsl(20, 30%, 10%) 40%,
+        hsl(18, 32%, 8%) 100%
+      );
   }
 }
 
@@ -71,3 +110,37 @@
   font-optical-sizing: auto;
   font-style: normal;
 }
+
+/* Asmbli warm neutral color utilities */
+.bg-warm-50 { background-color: #FAF8F5; }
+.bg-warm-100 { background-color: #F5F0E8; }
+.bg-warm-200 { background-color: #E8DFD0; }
+.bg-warm-300 { background-color: #D4C4AC; }
+.bg-warm-400 { background-color: #C4A882; }
+.bg-warm-500 { background-color: #8B6F47; }
+.bg-warm-600 { background-color: #725A3A; }
+.bg-warm-700 { background-color: #5A472E; }
+.bg-warm-800 { background-color: #3D2B1F; }
+.bg-warm-900 { background-color: #2B1F14; }
+.bg-warm-950 { background-color: #1F1611; }
+
+.text-warm-50 { color: #FAF8F5; }
+.text-warm-100 { color: #F5F0E8; }
+.text-warm-200 { color: #E8DFD0; }
+.text-warm-300 { color: #D4C4AC; }
+.text-warm-400 { color: #C4A882; }
+.text-warm-500 { color: #8B6F47; }
+.text-warm-600 { color: #725A3A; }
+.text-warm-700 { color: #5A472E; }
+.text-warm-800 { color: #3D2B1F; }
+.text-warm-900 { color: #2B1F14; }
+.text-warm-950 { color: #1F1611; }
+
+.border-warm-200 { border-color: #E8DFD0; }
+.border-warm-300 { border-color: #D4C4AC; }
+
+.hover\:border-warm-300:hover { border-color: #D4C4AC; }
+.hover\:bg-warm-600:hover { background-color: #725A3A; }
+
+.ring-warm-400 { --tw-ring-color: #C4A882; }
+.focus\:ring-warm-400:focus { --tw-ring-color: #C4A882; }
