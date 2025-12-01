@@ -256,16 +256,16 @@ export default function BetaWaitlistPage() {
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
-                    <Bot className="h-5 w-5 text-warm-600" />
+                    <Sparkles className="h-5 w-5 text-warm-600" />
                   </div>
-                  <CardTitle>Chain of Agents</CardTitle>
+                  <CardTitle>Design Canvas Agent</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Orchestrate multi-agent workflows where specialized agents collaborate -
-                  research agents hand off to analysts, who hand off to writers.
-                  Watch the entire chain work in real-time.
+                  A visual canvas for designing agent workflows. Drag, drop, and connect
+                  agent nodes to create complex orchestrations - no code required.
+                  See the flow of data and decisions at a glance.
                 </p>
               </CardContent>
             </Card>
@@ -274,15 +274,16 @@ export default function BetaWaitlistPage() {
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
-                    <Eye className="h-5 w-5 text-warm-600" />
+                    <Bot className="h-5 w-5 text-warm-600" />
                   </div>
-                  <CardTitle>Glass Box AI</CardTitle>
+                  <CardTitle>Agent Building Platform</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  See every reasoning step, every tool call, every decision your agents make.
-                  No black boxes - full transparency into how your AI thinks and acts.
+                  Create specialized AI agents with custom personalities, tools, and capabilities.
+                  Configure reasoning patterns, connect MCP servers, and deploy agents
+                  that actually get work done.
                 </p>
               </CardContent>
             </Card>
@@ -293,14 +294,14 @@ export default function BetaWaitlistPage() {
                   <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
                     <Zap className="h-5 w-5 text-warm-600" />
                   </div>
-                  <CardTitle>Live Task Control</CardTitle>
+                  <CardTitle>Custom AI Chat Interface</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Pause, modify, or redirect agent tasks mid-execution.
-                  Stay in control with real-time intervention capabilities
-                  and the ability to adjust agent behavior on the fly.
+                  A beautiful, customizable chat experience that works with any AI provider.
+                  Claude, OpenAI, Gemini, or local models - bring your own keys
+                  and own your conversations.
                 </p>
               </CardContent>
             </Card>
@@ -309,16 +310,16 @@ export default function BetaWaitlistPage() {
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-warm-600" />
+                    <Eye className="h-5 w-5 text-warm-600" />
                   </div>
-                  <CardTitle>50+ Tool Integrations</CardTitle>
+                  <CardTitle>Live Task Control</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Connect agents to GitHub, databases, Slack, file systems, and more
-                  via MCP servers. Real capabilities that let your agents
-                  actually do things in the real world.
+                  Human verification at every step. Watch agents work in real-time,
+                  approve critical actions, and intervene when needed.
+                  You stay in control - agents work for you, not around you.
                 </p>
               </CardContent>
             </Card>
