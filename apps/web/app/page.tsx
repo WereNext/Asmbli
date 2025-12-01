@@ -175,7 +175,7 @@ export default function HomePage() {
 
           {/* Hero Text */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic mb-4 sm:mb-6 font-display leading-tight">
-            Build AI Agents That Actually Do Things
+            Own Your AI Experiences
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
             The desktop platform that puts AI agent power in everyone's hands. See exactly what your agents are doing,
