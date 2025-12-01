@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Bot, Zap, Users, Shield, CheckCircle, Sparkles, Eye, Clock } from 'lucide-react'
+import { Bot, Zap, Users, Shield, CheckCircle, Sparkles, Eye, Clock, GitBranch, MessageSquare } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import { Footer } from '@/components/Footer'
 
@@ -251,25 +251,67 @@ export default function BetaWaitlistPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="border-2">
-              <CardHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-warm-600" />
-                  </div>
-                  <CardTitle>Design Canvas Agent</CardTitle>
+          {/* Visual Reasoning Flow - Featured */}
+          <Card className="border-2 border-warm-300 mb-8">
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-warm-200 rounded-lg flex items-center justify-center">
+                  <GitBranch className="h-6 w-6 text-warm-700" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  A visual canvas for designing agent workflows. Drag, drop, and connect
-                  agent nodes to create complex orchestrations - no code required.
-                  See the flow of data and decisions at a glance.
-                </p>
-              </CardContent>
-            </Card>
+                <div>
+                  <CardTitle className="text-xl">Visual Reasoning Flow</CardTitle>
+                  <CardDescription>Build your agent's logic visually</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-6">
+                Design how your agent thinks with our visual canvas. Drag, drop, and connect
+                reasoning blocks to create sophisticated decision-making workflows - no code required.
+              </p>
 
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-4 bg-warm-50 rounded-lg border border-warm-200">
+                  <h4 className="font-semibold text-sm mb-2">Simple Reasoning</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Goal → Context → Reasoning flow for quick decisions and basic analysis
+                  </p>
+                </div>
+                <div className="p-4 bg-warm-50 rounded-lg border border-warm-200">
+                  <h4 className="font-semibold text-sm mb-2">Decision Gateway</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Multi-path branching with conditional logic for complex decisions
+                  </p>
+                </div>
+                <div className="p-4 bg-warm-50 rounded-lg border border-warm-200">
+                  <h4 className="font-semibold text-sm mb-2">Research & Analysis</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Deep research with iterative analysis, validation, and synthesis
+                  </p>
+                </div>
+                <div className="p-4 bg-warm-50 rounded-lg border border-warm-200">
+                  <h4 className="font-semibold text-sm mb-2">Problem Solving</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Systematic breakdown and solution generation for technical issues
+                  </p>
+                </div>
+                <div className="p-4 bg-warm-50 rounded-lg border border-warm-200">
+                  <h4 className="font-semibold text-sm mb-2">Conversation Design</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Interactive dialogue flows with context awareness and memory
+                  </p>
+                </div>
+                <div className="p-4 bg-warm-50 rounded-lg border border-warm-200">
+                  <h4 className="font-semibold text-sm mb-2">Chain of Thought</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Step-by-step reasoning with visible thought process (CoT, ToT, ReAct)
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid md:grid-cols-3 gap-8">
             <Card className="border-2">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
@@ -281,9 +323,8 @@ export default function BetaWaitlistPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Create specialized AI agents with custom personalities, tools, and capabilities.
-                  Configure reasoning patterns, connect MCP servers, and deploy agents
-                  that actually get work done.
+                  Create specialized AI agents with custom personalities, tools, and reasoning patterns.
+                  Connect MCP servers and deploy agents that actually get work done.
                 </p>
               </CardContent>
             </Card>
@@ -292,16 +333,15 @@ export default function BetaWaitlistPage() {
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-warm-100 rounded-lg flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-warm-600" />
+                    <MessageSquare className="h-5 w-5 text-warm-600" />
                   </div>
                   <CardTitle>Custom AI Chat Interface</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  A beautiful, customizable chat experience that works with any AI provider.
-                  Claude, OpenAI, Gemini, or local models - bring your own keys
-                  and own your conversations.
+                  A beautiful chat experience for any AI provider - Claude, OpenAI, Gemini, or local models.
+                  Bring your own keys and own your conversations.
                 </p>
               </CardContent>
             </Card>
@@ -317,9 +357,8 @@ export default function BetaWaitlistPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Human verification at every step. Watch agents work in real-time,
-                  approve critical actions, and intervene when needed.
-                  You stay in control - agents work for you, not around you.
+                  Human verification at every step. Watch agents work, approve critical actions,
+                  and intervene when needed. You stay in control.
                 </p>
               </CardContent>
             </Card>
