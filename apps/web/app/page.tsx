@@ -46,6 +46,7 @@ import {
 } from 'react-icons/si'
 import { Navigation } from '@/components/Navigation'
 import { Footer } from '@/components/Footer'
+import { InteractiveGrid } from '@/components/InteractiveGrid'
 
 function BetaSignupForm() {
   const [formData, setFormData] = useState({
@@ -168,7 +169,10 @@ function BetaSignupForm() {
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
+      {/* Interactive Background Grid */}
+      <InteractiveGrid />
+
       {/* Navigation */}
       <Navigation />
 
