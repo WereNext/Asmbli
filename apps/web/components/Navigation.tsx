@@ -47,17 +47,11 @@ export function Navigation({ showBackButton = false, backHref = '/', backLabel =
             >
               Library
             </Link>
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className={`hover:underline text-sm ${isActive('/dashboard') ? 'font-semibold text-foreground' : ''}`}
             >
               Dashboard
-            </Link>
-            <Link
-              href="/download"
-              className={`hover:underline text-sm ${isActive('/download') ? 'font-semibold text-foreground' : ''}`}
-            >
-              Download
             </Link>
             <Link
               href="/beta"
@@ -65,8 +59,8 @@ export function Navigation({ showBackButton = false, backHref = '/', backLabel =
             >
               Beta Waitlist
             </Link>
-            <Link href="/chat">
-              <Button>View Demo</Button>
+            <Link href="/beta">
+              <Button>Join Beta</Button>
             </Link>
           </nav>
 
@@ -99,19 +93,12 @@ export function Navigation({ showBackButton = false, backHref = '/', backLabel =
               >
                 Library
               </Link>
-              <Link 
-                href="/dashboard" 
+              <Link
+                href="/dashboard"
                 className={`hover:text-primary transition-colors ${isActive('/dashboard') ? 'font-semibold text-foreground' : ''}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Dashboard
-              </Link>
-              <Link
-                href="/download"
-                className={`hover:text-primary transition-colors ${isActive('/download') ? 'font-semibold text-foreground' : ''}`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Download
               </Link>
               <Link
                 href="/beta"
@@ -120,8 +107,8 @@ export function Navigation({ showBackButton = false, backHref = '/', backLabel =
               >
                 Beta Waitlist
               </Link>
-              <Link href="/chat" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button className="w-full">View Demo</Button>
+              <Link href="/beta" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button className="w-full">Join Beta</Button>
               </Link>
             </div>
           </nav>

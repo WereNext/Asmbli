@@ -619,21 +619,16 @@ export default function MCPServersPage() {
       <section className="py-12 px-4 bg-muted/50">
         <div className="container mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold mb-6">
-            Ready to Get Started?
+            Ready to Build with MCP?
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Browse our agent templates that come pre-configured with popular MCP servers, 
-            or start building your own custom agent configuration.
+            Join the beta to get access to 50+ MCP server integrations and start building
+            AI agents that connect to real tools.
           </p>
           <div className="flex gap-4 justify-center">
-            <Link href="/templates">
-              <Button size="lg">
-                Browse Templates
-              </Button>
-            </Link>
-            <Link href="/chat">
-              <Button size="lg" variant="outline">
-                Start Building
+            <Link href="/beta">
+              <Button size="lg" className="bg-warm-500 hover:bg-warm-600 text-warm-50">
+                Join the Beta Waitlist
               </Button>
             </Link>
           </div>

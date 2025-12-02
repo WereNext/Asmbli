@@ -214,14 +214,9 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-            <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="w-full sm:w-auto bg-warm-500 hover:bg-warm-600 text-warm-50">
-                Get Started Free
-              </Button>
-            </Link>
             <Link href="/beta">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Join Beta Waitlist
+              <Button size="lg" className="w-full sm:w-auto bg-warm-500 hover:bg-warm-600 text-warm-50">
+                Join the Beta Waitlist
               </Button>
             </Link>
           </div>
@@ -341,9 +336,9 @@ export default function HomePage() {
           </div>
 
           <div className="mt-8 sm:mt-12 px-4">
-            <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
+            <Link href="/beta">
               <Button size="lg" className="w-full sm:w-auto bg-warm-500 hover:bg-warm-600 text-warm-50">
-                Get Started on GitHub
+                Join the Beta Waitlist
               </Button>
             </Link>
           </div>
@@ -732,14 +727,9 @@ export default function HomePage() {
                 The full platform is yours - no artificial limitations, no premium tiers for core features.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link href="https://github.com/WereNext/Asmbli" target="_blank" rel="noopener noreferrer">
+                <Link href="/beta">
                   <Button className="w-full sm:w-auto bg-warm-500 hover:bg-warm-600 text-warm-50">
-                    Get the Platform
-                  </Button>
-                </Link>
-                <Link href="https://github.com/WereNext/Asmbli#-quick-start" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    Quick Start Guide
+                    Join the Beta Waitlist
                   </Button>
                 </Link>
               </div>
