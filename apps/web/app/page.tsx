@@ -821,6 +821,58 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Built With Section */}
+      <section className="py-12 sm:py-16 px-4 border-t border-warm-200/30">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-8">
+            <h3 className="text-lg sm:text-xl font-semibold text-muted-foreground mb-2">
+              Built With
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Asmbli is powered by these amazing open technologies
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-6 sm:gap-10">
+            <Link
+              href="https://dspy.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-warm-50/50 transition-colors"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                DS
+              </div>
+              <span className="text-sm font-medium group-hover:text-warm-600 transition-colors">DSPy</span>
+              <span className="text-xs text-muted-foreground">AI Framework</span>
+            </Link>
+            <Link
+              href="https://modelcontextprotocol.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-warm-50/50 transition-colors"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                MCP
+              </div>
+              <span className="text-sm font-medium group-hover:text-warm-600 transition-colors">Model Context Protocol</span>
+              <span className="text-xs text-muted-foreground">Tool Integration</span>
+            </Link>
+            <Link
+              href="https://ollama.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-warm-50/50 transition-colors"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                <span className="text-2xl">🦙</span>
+              </div>
+              <span className="text-sm font-medium group-hover:text-warm-600 transition-colors">Ollama</span>
+              <span className="text-xs text-muted-foreground">Local Models</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <Footer />
     </div>
