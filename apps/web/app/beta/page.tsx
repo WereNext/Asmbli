@@ -2,11 +2,36 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Bot, Zap, Users, Shield, CheckCircle, Sparkles, Eye, Clock, GitBranch, MessageSquare } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import { Footer } from '@/components/Footer'
+
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+}
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.6 } }
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+  }
+}
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+}
 
 function BetaSignupForm() {
   const [formData, setFormData] = useState({
@@ -166,100 +191,141 @@ export default function BetaWaitlistPage() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-warm-50/20 to-background">
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-br from-warm-50/20 to-background overflow-hidden">
         <div className="container mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 bg-warm-100 text-warm-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+          <motion.div
+            className="inline-flex items-center gap-2 bg-warm-100 text-warm-700 px-4 py-2 rounded-full text-sm font-medium mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <Sparkles className="h-4 w-4" />
             Early Access Coming Soon
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold italic mb-4 sm:mb-6 font-display leading-tight">
+          </motion.div>
+          <motion.h1
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold italic mb-4 sm:mb-6 font-display leading-tight"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
             Join the Asmbli Beta
-          </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-            Be among the first to experience the future of AI agent orchestration.
-            Get early access to build, chain, and control AI agents with full transparency.
-          </p>
+          </motion.h1>
+          <motion.p
+            className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Be among the first to experience the future of AI agent templates.
+            Get early access to build, customize, and control AI agents with full transparency.
+          </motion.p>
         </div>
       </section>
 
       {/* Signup Form Section */}
       <section className="py-12 sm:py-16 px-4">
         <div className="container mx-auto max-w-xl">
-          <Card className="border-2 border-warm-200 shadow-xl">
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="text-2xl">Request Early Access</CardTitle>
-              <CardDescription className="text-base">
-                Join the waitlist and we'll notify you when beta access is available
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <BetaSignupForm />
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <Card className="border-2 border-warm-200 shadow-xl">
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-2xl">Request Early Access</CardTitle>
+                <CardDescription className="text-base">
+                  Join the waitlist and we'll notify you when beta access is available
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <BetaSignupForm />
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </section>
 
       {/* What You'll Get Section */}
       <section className="py-12 sm:py-16 lg:py-20 px-4 bg-warm-50/10">
         <div className="container mx-auto">
-          <div className="text-center mb-8 sm:mb-12">
+          <motion.div
+            className="text-center mb-8 sm:mb-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+          >
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 font-display">
               What Beta Members Get
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
               Early access comes with exclusive benefits
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Clock className="h-6 w-6 text-warm-600" />
-                </div>
-                <CardTitle className="text-lg">Early Access</CardTitle>
-                <CardDescription>
-                  Be first to use new features before they're publicly available
-                </CardDescription>
-              </CardHeader>
-            </Card>
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
+            <motion.div variants={staggerItem}>
+              <Card className="text-center border-2 hover:border-warm-300 transition-colors h-full">
+                <CardHeader className="pb-6 pt-8">
+                  <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Clock className="h-6 w-6 text-warm-600" />
+                  </div>
+                  <CardTitle className="text-lg">Early Access</CardTitle>
+                  <CardDescription>
+                    Be first to use new features before they're publicly available
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </motion.div>
 
-            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Users className="h-6 w-6 text-warm-600" />
-                </div>
-                <CardTitle className="text-lg">Direct Feedback</CardTitle>
-                <CardDescription>
-                  Shape the product roadmap with direct access to our team
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <motion.div variants={staggerItem}>
+              <Card className="text-center border-2 hover:border-warm-300 transition-colors h-full">
+                <CardHeader className="pb-6 pt-8">
+                  <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Users className="h-6 w-6 text-warm-600" />
+                  </div>
+                  <CardTitle className="text-lg">Direct Feedback</CardTitle>
+                  <CardDescription>
+                    Shape the product roadmap with direct access to our team
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </motion.div>
 
-            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Eye className="h-6 w-6 text-warm-600" />
-                </div>
-                <CardTitle className="text-lg">Glass Box Access</CardTitle>
-                <CardDescription>
-                  Full visibility into agent reasoning and decision-making
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <motion.div variants={staggerItem}>
+              <Card className="text-center border-2 hover:border-warm-300 transition-colors h-full">
+                <CardHeader className="pb-6 pt-8">
+                  <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Eye className="h-6 w-6 text-warm-600" />
+                  </div>
+                  <CardTitle className="text-lg">Glass Box Access</CardTitle>
+                  <CardDescription>
+                    Full visibility into agent reasoning and decision-making
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </motion.div>
 
-            <Card className="text-center border-2 hover:border-warm-300 transition-colors">
-              <CardHeader className="pb-6 pt-8">
-                <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Shield className="h-6 w-6 text-warm-600" />
-                </div>
-                <CardTitle className="text-lg">Founder Pricing</CardTitle>
-                <CardDescription>
-                  Lock in special pricing that stays with you forever
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+            <motion.div variants={staggerItem}>
+              <Card className="text-center border-2 hover:border-warm-300 transition-colors h-full">
+                <CardHeader className="pb-6 pt-8">
+                  <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Shield className="h-6 w-6 text-warm-600" />
+                  </div>
+                  <CardTitle className="text-lg">Founder Pricing</CardTitle>
+                  <CardDescription>
+                    Lock in special pricing that stays with you forever
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
