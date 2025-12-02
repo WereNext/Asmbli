@@ -154,21 +154,11 @@ export default function HomePage() {
           <div className="mb-8 sm:mb-12">
             <div className="max-w-5xl mx-auto px-2 sm:px-4">
               <div className="rounded-lg sm:rounded-xl border bg-card p-1 sm:p-2 md:p-3 shadow-xl hover:shadow-2xl sm:shadow-2xl sm:hover:shadow-3xl transition-shadow duration-300">
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-auto rounded-md sm:rounded-lg hover:scale-[1.02] transition-transform duration-300 object-contain max-h-[300px] sm:max-h-[400px] md:max-h-[500px] lg:max-h-[600px] xl:max-h-[700px]"
-                  aria-label="Asmbli - AI Agent Orchestration Platform"
-                >
-                  <source src="/hero-demo-new.mp4" type="video/mp4" />
-                  <img
-                    src="/hero-app-screenshot.png"
-                    alt="Asmbli - AI Agent Orchestration Platform"
-                    className="w-full h-auto rounded-md sm:rounded-lg"
-                  />
-                </video>
+                <img
+                  src="/hero-app-screenshot.png"
+                  alt="Asmbli - AI Agent Orchestration Platform"
+                  className="w-full h-auto rounded-md sm:rounded-lg hover:scale-[1.01] transition-transform duration-300 object-contain"
+                />
               </div>
             </div>
           </div>
