@@ -156,7 +156,7 @@ export default function HomePage() {
               <div className="rounded-lg sm:rounded-xl border bg-card p-1 sm:p-2 md:p-3 shadow-xl hover:shadow-2xl sm:shadow-2xl sm:hover:shadow-3xl transition-shadow duration-300">
                 <img
                   src="/hero-app-screenshot.png"
-                  alt="Asmbli - AI Agent Orchestration Platform"
+                  alt="Asmbli - AI Agent Platform"
                   className="w-full h-auto rounded-md sm:rounded-lg hover:scale-[1.01] transition-transform duration-300 object-contain"
                 />
               </div>
@@ -168,19 +168,19 @@ export default function HomePage() {
             Own Your AI Experiences
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-            The desktop platform that puts AI agent power in everyone's hands. See exactly what your agents are doing,
-            chain them together, and keep full control. No black boxes. No vendor lock-in.
+            The desktop platform that puts AI agent power in everyone's hands. Pick a template, customize your agent,
+            and get to work. No black boxes. No vendor lock-in.
           </p>
 
           {/* Key Capabilities */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12 max-w-4xl mx-auto px-4">
             <div className="text-center p-4 sm:p-0">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-warm-600" />
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-warm-600" />
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Agent Orchestration</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Agent Templates</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Chain multiple specialized agents together. Research, analyze, create, and review in coordinated workflows.
+                Start with pre-built templates for research, coding, analysis, and more. Customize to fit your workflow.
               </p>
             </div>
             <div className="text-center p-4 sm:p-0">
@@ -255,11 +255,11 @@ export default function HomePage() {
             <Card className="text-center border-2 hover:border-warm-300 transition-colors">
               <CardHeader className="pb-8 pt-8">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Users className="h-6 w-6 text-blue-600" />
+                  <FileText className="h-6 w-6 text-blue-600" />
                 </div>
-                <CardTitle className="text-lg">Chain of Agents</CardTitle>
+                <CardTitle className="text-lg">Ready-to-Use Templates</CardTitle>
                 <CardDescription>
-                  Orchestrate multi-agent workflows. Research agents hand off to analysts, who hand off to writers. Visible collaboration.
+                  Pick from curated agent templates. Research assistants, code reviewers, writing helpers - configured and ready to go.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -318,9 +318,9 @@ export default function HomePage() {
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <span className="text-xl sm:text-2xl font-bold text-warm-700">3</span>
               </div>
-              <h3 className="font-semibold mb-2 text-sm sm:text-base">Build Agent Workflows</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Customize & Deploy</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Create specialized agents, chain them together, connect MCP tools, and watch them collaborate on real tasks.
+                Pick a template, tweak the settings, connect your tools, and start getting work done in minutes.
               </p>
             </div>
           </div>
@@ -703,7 +703,7 @@ export default function HomePage() {
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8 px-4">
             Powerful AI shouldn't be locked behind enterprise contracts. Asmbli puts professional-grade
-            agent orchestration in the hands of individuals, startups, and teams of any size.
+            agent templates in the hands of individuals, startups, and teams of any size.
           </p>
 
           <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 border mx-4 sm:mx-0">
