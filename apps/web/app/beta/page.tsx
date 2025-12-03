@@ -318,9 +318,9 @@ export default function BetaWaitlistPage() {
                   <div className="w-12 h-12 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Shield className="h-6 w-6 text-warm-600" />
                   </div>
-                  <CardTitle className="text-lg">Founder Pricing</CardTitle>
+                  <CardTitle className="text-lg">Privacy First</CardTitle>
                   <CardDescription>
-                    Lock in special pricing that stays with you forever
+                    Your data stays on your device - we never see or store it
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -485,7 +485,7 @@ export default function BetaWaitlistPage() {
               <CardContent>
                 <p className="text-muted-foreground">
                   Beta members get free access to all features during the beta period.
-                  You'll also lock in special founder pricing when we launch publicly.
+                  Help us shape the future of AI agents with your feedback.
                 </p>
               </CardContent>
             </Card>
@@ -545,7 +545,7 @@ export default function BetaWaitlistPage() {
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Founder pricing locked in</span>
+              <span>100% local-first privacy</span>
             </div>
           </div>
         </div>
