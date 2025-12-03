@@ -36,7 +36,6 @@ from ..modules import (
     CodeAgent,
     ChainOfThoughtModule,
     TreeOfThoughtModule,
-    Tool,
 )
 from ..modules.agents import create_calculator_tool, create_json_tool
 
@@ -264,62 +263,84 @@ async def execute_agent(request: AgentRequest):
     """
     Execute a ReAct agent to complete a task.
 
+    Uses official dspy.ReAct for optimized reasoning and tool use.
     The agent will reason, use tools, and iterate until done.
     """
     try:
         model = request.model or settings.default_model
         api_key = settings.anthropic_api_key if "anthropic" in model else settings.openai_api_key
 
-        # Build tools
+        # Build tools as dspy.ReAct compatible functions
         tools = [create_calculator_tool(), create_json_tool()]
 
         # Add custom tools from request
         for tool_def in request.tools:
-            # For custom tools, create a simple passthrough
-            # In production, you'd have a tool registry
-            if tool_def.name not in [t.name for t in tools]:
-                tools.append(Tool(
-                    name=tool_def.name,
-                    description=tool_def.description,
-                    func=lambda x: f"Tool {tool_def.name} not implemented: {x}"
-                ))
+            tool_names = [t.__name__ for t in tools]
+            if tool_def.name not in tool_names:
+                # Create a placeholder tool for custom tools
+                def make_placeholder(name, desc):
+                    def placeholder(input_str: str) -> str:
+                        f"""Tool '{name}': {desc}. (Not yet implemented on backend)"""
+                        return f"Tool {name} not implemented on backend: {input_str}"
+                    placeholder.__name__ = name
+                    placeholder.__doc__ = desc
+                    return placeholder
+                tools.append(make_placeholder(tool_def.name, tool_def.description))
 
-        # Create and run agent
-        agent = ReActAgent(tools=tools, max_iterations=request.max_iterations)
+        # Create and run agent using official dspy.ReAct wrapper
+        agent = ReActAgent(tools=tools, max_iters=request.max_iterations)
 
         lm = dspy.LM(model, api_key=api_key)
         with dspy.context(lm=lm):
-            result = agent(question=request.task)
+            result = agent.run(question=request.task)
 
         # Parse trajectory into steps
         steps = []
-        trajectory_lines = result.trajectory.split('\n')
-        current_step = {}
+        trajectory = getattr(result, 'trajectory', '') or ''
 
-        for line in trajectory_lines:
-            if line.startswith("Thought"):
-                if current_step:
-                    steps.append(AgentStep(**current_step))
-                iteration = len(steps) + 1
-                current_step = {
-                    "iteration": iteration,
-                    "thought": line.split(":", 1)[1].strip() if ":" in line else line,
-                    "action": "",
-                    "observation": None
-                }
-            elif line.startswith("Action") and current_step:
-                current_step["action"] = line.split(":", 1)[1].strip() if ":" in line else line
-            elif line.startswith("Observation") and current_step:
-                current_step["observation"] = line.split(":", 1)[1].strip() if ":" in line else line
+        if trajectory and trajectory != "Trajectory not available":
+            trajectory_lines = trajectory.split('\n')
+            current_step = {}
 
-        if current_step and current_step.get("thought"):
-            steps.append(AgentStep(**current_step))
+            for line in trajectory_lines:
+                line = line.strip()
+                if not line:
+                    continue
+
+                if line.startswith("Thought") or line.startswith("Step"):
+                    if current_step and current_step.get("thought"):
+                        steps.append(AgentStep(**current_step))
+                    iteration = len(steps) + 1
+                    current_step = {
+                        "iteration": iteration,
+                        "thought": line.split(":", 1)[1].strip() if ":" in line else line,
+                        "action": "",
+                        "observation": None
+                    }
+                elif line.startswith("Action") and current_step:
+                    current_step["action"] = line.split(":", 1)[1].strip() if ":" in line else line
+                elif line.startswith("Observation") and current_step:
+                    current_step["observation"] = line.split(":", 1)[1].strip() if ":" in line else line
+                elif line.startswith("Reasoning") and current_step:
+                    current_step["thought"] = line.split(":", 1)[1].strip() if ":" in line else line
+
+            if current_step and current_step.get("thought"):
+                steps.append(AgentStep(**current_step))
+
+        # If no steps parsed, create a summary step
+        if not steps:
+            steps.append(AgentStep(
+                iteration=1,
+                thought=f"Processed task: {request.task}",
+                action="reasoning",
+                observation=str(result.answer) if hasattr(result, 'answer') else str(result)
+            ))
 
         return AgentResponse(
             answer=result.answer,
-            success=result.success,
+            success=getattr(result, 'success', True),
             steps=steps,
-            iterations_used=result.iterations,
+            iterations_used=getattr(result, 'iterations', len(steps)),
             model=model,
         )
 
