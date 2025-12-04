@@ -943,11 +943,11 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="group flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-warm-50/50 transition-colors"
               >
-                <div className="w-32 h-12 flex items-center justify-center">
+                <div className="h-12 flex items-center justify-center">
                   <img
-                    src="/dspy-logo.svg"
+                    src="/dspy-logo.png"
                     alt="DSPy"
-                    className="w-full h-full object-contain"
+                    className="h-full w-auto object-contain"
                   />
                 </div>
                 <span className="text-xs text-muted-foreground">AI Framework</span>
