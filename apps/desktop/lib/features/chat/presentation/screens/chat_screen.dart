@@ -19,6 +19,7 @@ import '../../../../core/models/model_config.dart';
 import '../../../../core/services/agent_context_prompt_service.dart';
 import '../../../../core/services/model_warmup_service.dart';
 import '../../../../core/services/quick_chat_model_service.dart';
+import '../../../../core/services/dspy/dspy.dart';
 import '../widgets/improved_conversation_sidebar.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/agent_deployment_section.dart';
@@ -1056,8 +1057,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
  if (isAgentConversation) {
  return Container(
  margin: const EdgeInsets.symmetric(vertical: 8),
- child: const StreamingMessageWidget(
- messageId: 'streaming-temp',
+ child: StreamingMessageWidget(
+ messageId: _getActiveStreamingMessageId(ref, conversationId),
  role: 'assistant',
  ),
  );
@@ -1794,10 +1795,244 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
  }
 
  Future<void> _handleAgentDirectResponse(String conversationId, String userMessage, core.Conversation conversation) async {
-  // For now, just use the same logic as standard response
-  // The agent's system prompt is already stored in the conversation metadata
-  // and will be used by the LLM service automatically
-  await _handleStandardResponse(conversationId);
+  // Check if DSPy backend is connected
+  final dspyService = ref.read(dspyServiceProvider);
+  final dspyConnected = dspyService.state.isConnected;
+
+  if (!dspyConnected) {
+    // Fallback to standard response if DSPy is not connected
+    AppLogger.warning('DSPy not connected, falling back to standard LLM', component: 'Chat.Agent');
+    await _handleStandardResponse(conversationId);
+    return;
+  }
+
+  try {
+    // Get MCP tools from conversation metadata
+    final mcpServers = conversation.metadata?['mcpServers'] as List<dynamic>? ?? [];
+
+    // TASK 5: Ensure MCP servers are running before processing message
+    if (mcpServers.isNotEmpty) {
+      AppLogger.info('Checking MCP server health for ${mcpServers.length} servers', component: 'Chat.MCP');
+      final mcpExecutionService = ref.read(mcpServerExecutionServiceProvider);
+
+      for (final server in mcpServers) {
+        final serverId = server is Map ? server['id'] as String? : server.toString();
+        if (serverId == null) continue;
+
+        // Check if server is running
+        final runningServer = mcpExecutionService.getRunningServer(serverId);
+
+        if (runningServer == null) {
+          // Server not running, start it
+          AppLogger.info('Starting MCP server: $serverId', component: 'Chat.MCP');
+          try {
+            await mcpExecutionService.startMCPServer(serverId);
+            AppLogger.info('MCP server started successfully: $serverId', component: 'Chat.MCP');
+          } catch (e) {
+            AppLogger.error('Failed to start MCP server: $serverId', component: 'Chat.MCP', error: e);
+            // Continue with other servers even if one fails
+          }
+        } else {
+          AppLogger.info('MCP server already running: $serverId (status: ${runningServer.status})', component: 'Chat.MCP');
+        }
+      }
+    }
+
+    final tools = <Map<String, dynamic>>[];
+
+    // Build tool definitions for MCP servers
+    for (final server in mcpServers) {
+      final serverId = server is Map ? server['id'] as String? : server.toString();
+      if (serverId != null) {
+        tools.add({
+          'name': serverId.replaceAll('-', '_'),
+          'description': 'MCP server: $serverId',
+          'server_id': serverId,
+        });
+      }
+    }
+
+    AppLogger.info(
+      'Starting DSPy agent stream for agent conversation (${tools.length} tools, ${mcpServers.length} MCP servers)',
+      component: 'Chat.Agent',
+    );
+
+    // Create streaming message to show progress
+    final streamingMessageId = DateTime.now().millisecondsSinceEpoch.toString();
+    final service = ref.read(conversationServiceProvider);
+
+    var streamingMessage = core.Message(
+      id: streamingMessageId,
+      content: '',
+      role: core.MessageRole.assistant,
+      timestamp: DateTime.now(),
+      metadata: {
+        'streaming': true,
+        'processingStatus': 'initializing',
+        'mcpInteractions': <Map<String, dynamic>>[],
+        'toolResults': <Map<String, dynamic>>[],
+        'dspyStream': true,
+      },
+    );
+
+    await service.addMessage(conversationId, streamingMessage);
+    ref.invalidate(messagesProvider(conversationId));
+
+    // Initialize streaming message state for real-time UI updates
+    final streamingNotifier = ref.read(streamingMessageProvider.notifier);
+    streamingNotifier.startStreaming(streamingMessageId, conversationId, '');
+    streamingNotifier.updateProcessingStatus(streamingMessageId, 'Starting agent...');
+
+    // Start streaming from DSPy
+    String currentAnswer = '';
+    final stepsList = <Map<String, dynamic>>[];
+    final toolCalls = <Map<String, dynamic>>[];
+    final toolResults = <Map<String, dynamic>>[];
+    String currentStatus = 'Starting agent...';
+
+    await for (final event in dspyService.streamAgent(
+      userMessage,
+      tools: tools,
+      maxIterations: 5,
+      conversationId: conversationId,
+      flutterCallbackUrl: 'http://localhost:3000', // Plugin Bridge Server
+    )) {
+      switch (event.type) {
+        case DspyStreamEventType.status:
+          currentStatus = event.statusMessage ?? currentStatus;
+          // Update streaming widget status in real-time
+          streamingNotifier.updateProcessingStatus(streamingMessageId, currentStatus);
+          break;
+
+        case DspyStreamEventType.toolCall:
+          final toolName = event.toolName ?? 'unknown';
+          final toolData = {
+            'tool': toolName,
+            'arguments': event.data['arguments'],
+            'timestamp': event.timestamp.toIso8601String(),
+          };
+          toolCalls.add(toolData);
+          currentStatus = 'Calling tool: $toolName';
+          streamingNotifier.updateProcessingStatus(streamingMessageId, currentStatus);
+          break;
+
+        case DspyStreamEventType.toolResult:
+          final resultData = {
+            'result': event.data['result'],
+            'success': event.data['success'] ?? true,
+            'timestamp': event.timestamp.toIso8601String(),
+          };
+          toolResults.add(resultData);
+          currentStatus = 'Tool completed';
+          // Add tool result to streaming widget
+          streamingNotifier.addToolResult(
+            streamingMessageId,
+            MCPToolResult(
+              serverId: event.data['server_id'] as String? ?? 'unknown',
+              toolName: event.data['tool'] as String? ?? 'unknown',
+              arguments: (event.data['arguments'] as Map<String, dynamic>?) ?? {},
+              result: event.data['result'],
+              success: event.data['success'] as bool? ?? true,
+              error: event.data['error'] as String?,
+              timestamp: event.timestamp,
+            ),
+          );
+          streamingNotifier.updateProcessingStatus(streamingMessageId, currentStatus);
+          break;
+
+        case DspyStreamEventType.step:
+          stepsList.add(event.data);
+          final thought = event.data['thought'] as String?;
+          if (thought != null) {
+            streamingNotifier.updateProcessingStatus(streamingMessageId, 'Thinking: ${thought.length > 50 ? '${thought.substring(0, 50)}...' : thought}');
+          }
+          break;
+
+        case DspyStreamEventType.token:
+          // Append token to answer (for streaming text support)
+          final token = event.data['token'] as String? ?? '';
+          currentAnswer += token;
+          streamingNotifier.addStreamedToken(streamingMessageId, token);
+          break;
+
+        case DspyStreamEventType.done:
+          // Final answer received
+          currentAnswer = event.answer ?? currentAnswer;
+          final iterations = event.data['iterations'] as int? ?? stepsList.length;
+
+          // Complete the streaming state
+          streamingNotifier.completeStreaming(
+            streamingMessageId,
+            metadata: {
+              'toolsUsed': toolCalls.length,
+              'iterations': iterations,
+              'processingTime': DateTime.now().difference(streamingMessage.timestamp).inMilliseconds,
+            },
+          );
+
+          // Also update final content if we didn't stream tokens
+          if (currentAnswer.isNotEmpty) {
+            streamingNotifier.addStreamedToken(streamingMessageId, currentAnswer);
+          }
+
+          // Create final message for persistence
+          final finalMessage = core.Message(
+            id: streamingMessageId,
+            content: currentAnswer,
+            role: core.MessageRole.assistant,
+            timestamp: streamingMessage.timestamp,
+            metadata: {
+              'streaming': false,
+              'processingStatus': 'completed',
+              'mcpInteractions': toolCalls,
+              'toolResults': toolResults,
+              'steps': stepsList,
+              'iterations': iterations,
+              'success': event.data['success'] ?? true,
+              'dspyStream': true,
+            },
+          );
+
+          await service.addMessage(conversationId, finalMessage);
+          ref.invalidate(messagesProvider(conversationId));
+          break;
+
+        case DspyStreamEventType.error:
+          // Handle error
+          final errorMsg = event.errorMessage ?? 'Unknown error';
+          AppLogger.error('DSPy stream error', component: 'Chat.Agent', error: errorMsg);
+
+          // Complete streaming with error
+          streamingNotifier.completeStreaming(
+            streamingMessageId,
+            error: errorMsg,
+          );
+
+          final errorMessage = core.Message(
+            id: streamingMessageId,
+            content: 'Sorry, I encountered an error: $errorMsg',
+            role: core.MessageRole.assistant,
+            timestamp: streamingMessage.timestamp,
+            metadata: {
+              'streaming': false,
+              'processingStatus': 'error',
+              'error': errorMsg,
+              'isError': true,
+              'dspyStream': true,
+            },
+          );
+
+          await service.addMessage(conversationId, errorMessage);
+          ref.invalidate(messagesProvider(conversationId));
+          break;
+      }
+    }
+
+  } catch (e) {
+    AppLogger.error('DSPy agent execution failed', component: 'Chat.Agent', error: e);
+    // Fallback to standard response on error
+    await _handleStandardResponse(conversationId);
+  }
 }
 
 // DEPRECATED: MCPBridgeService removed
@@ -2346,13 +2581,21 @@ Future<void> _updateConversationPrimingAfterSuccess(String conversationId, Model
    );
  }
 
-  /// New contextual input area implementation  
+  /// New contextual input area implementation
   Widget _buildContextualInput() {
     return ContextualInputArea(
       messageController: messageController,
       onSendMessage: _sendMessage,
       isLoading: ref.watch(isLoadingProvider),
     );
+  }
+
+  /// Get the active streaming message ID for the given conversation
+  String _getActiveStreamingMessageId(WidgetRef ref, String conversationId) {
+    final streamingStates = ref.watch(streamingMessageProvider);
+    return streamingStates.keys
+        .where((id) => streamingStates[id]?.conversationId == conversationId && !streamingStates[id]!.isComplete)
+        .firstOrNull ?? 'streaming-temp';
   }
 }
 

@@ -943,10 +943,13 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="group flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-warm-50/50 transition-colors"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-                  DS
+                <div className="w-32 h-12 flex items-center justify-center">
+                  <img
+                    src="/dspy-logo.svg"
+                    alt="DSPy"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-                <span className="text-sm font-medium group-hover:text-warm-600 transition-colors">DSPy</span>
                 <span className="text-xs text-muted-foreground">AI Framework</span>
               </Link>
             </motion.div>

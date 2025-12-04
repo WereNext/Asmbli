@@ -13,6 +13,7 @@ class StreamingMessageState {
   final List<MCPResourceData> resourceData;
   final bool isComplete;
   final String? error;
+  final String? processingStatus;
   final Map<String, dynamic> metadata;
 
   // Cached full content to avoid O(n²) string concatenation
@@ -28,6 +29,7 @@ class StreamingMessageState {
     this.resourceData = const [],
     this.isComplete = false,
     this.error,
+    this.processingStatus,
     this.metadata = const {},
   });
 
@@ -37,6 +39,8 @@ class StreamingMessageState {
     List<MCPResourceData>? resourceData,
     bool? isComplete,
     String? error,
+    String? processingStatus,
+    bool clearProcessingStatus = false,
     Map<String, dynamic>? metadata,
   }) {
     return StreamingMessageState(
@@ -48,6 +52,7 @@ class StreamingMessageState {
       resourceData: resourceData ?? this.resourceData,
       isComplete: isComplete ?? this.isComplete,
       error: error ?? this.error,
+      processingStatus: clearProcessingStatus ? null : (processingStatus ?? this.processingStatus),
       metadata: metadata ?? this.metadata,
     );
   }
@@ -169,6 +174,19 @@ class StreamingMessageNotifier extends StateNotifier<Map<String, StreamingMessag
     }
   }
 
+  /// Update the processing status message shown during streaming
+  void updateProcessingStatus(String messageId, String status) {
+    final current = state[messageId];
+    if (current != null) {
+      state = {
+        ...state,
+        messageId: current.copyWith(
+          processingStatus: status,
+        ),
+      };
+    }
+  }
+
   void completeStreaming(String messageId, {String? error, Map<String, dynamic>? metadata}) {
     final current = state[messageId];
     if (current != null) {
@@ -256,7 +274,7 @@ class StreamingMessageWidget extends ConsumerWidget {
                 
                 // Streaming status
                 if (!streamingState.isComplete)
-                  _buildStreamingStatus(context),
+                  _buildStreamingStatus(context, streamingState.processingStatus),
                 
                 // Error display
                 if (streamingState.error != null)
@@ -513,9 +531,18 @@ class StreamingMessageWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildStreamingStatus(BuildContext context) {
+  Widget _buildStreamingStatus(BuildContext context, [String? status]) {
+    final statusText = status ?? 'Processing with MCP servers...';
     return Container(
       margin: const EdgeInsets.only(top: SpacingTokens.xs),
+      padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.sm, vertical: SpacingTokens.xs),
+      decoration: BoxDecoration(
+        color: ThemeColors(context).primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+        border: Border.all(
+          color: ThemeColors(context).primary.withValues(alpha: 0.3),
+        ),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -527,12 +554,14 @@ class StreamingMessageWidget extends ConsumerWidget {
               strokeWidth: 2,
             ),
           ),
-          const SizedBox(width: SpacingTokens.xs),
-          Text(
-            'Processing with MCP servers...',
-            style: TextStyles.caption.copyWith(
-              color: ThemeColors(context).onSurfaceVariant,
-              fontStyle: FontStyle.italic,
+          const SizedBox(width: SpacingTokens.sm),
+          Flexible(
+            child: Text(
+              statusText,
+              style: TextStyles.caption.copyWith(
+                color: ThemeColors(context).primary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
