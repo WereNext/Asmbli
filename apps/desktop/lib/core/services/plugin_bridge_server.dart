@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import '../di/service_locator.dart';
+import 'mcp_server_execution_service.dart';
 
 /// HTTP/WebSocket server that communicates with PenPot plugin
 /// The plugin runs in the web browser (design.penpot.app) and communicates via:
@@ -82,6 +84,9 @@ class PluginBridgeServer {
         await _handlePluginConnection(request);
       } else if (request.method == 'POST' && request.uri.path == '/mcp-command') {
         await _handleMCPCommand(request);
+      } else if (request.method == 'POST' && request.uri.path == '/mcp/execute') {
+        // NEW: MCP tool execution endpoint for DSPy agents
+        await _handleMCPToolExecution(request);
       } else {
         request.response.statusCode = 404;
         request.response.write(jsonEncode({'error': 'Not found'}));
@@ -134,6 +139,93 @@ class PluginBridgeServer {
       'success': true,
       'message': 'Command received',
     }));
+  }
+
+  /// Handle MCP tool execution request from DSPy backend
+  /// This is the callback endpoint that DSPy agents use to execute MCP tools
+  Future<void> _handleMCPToolExecution(HttpRequest request) async {
+    final stopwatch = Stopwatch()..start();
+
+    try {
+      final body = await utf8.decoder.bind(request).join();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      final toolName = data['tool_name'] as String?;
+      final serverId = data['server_id'] as String?;
+      final arguments = data['arguments'] as Map<String, dynamic>? ?? {};
+      final agentId = data['agent_id'] as String?;
+
+      debugPrint('🤖 DSPy MCP tool execution request:');
+      debugPrint('   Tool: $toolName');
+      debugPrint('   Server: $serverId');
+      debugPrint('   Agent: $agentId');
+
+      if (toolName == null || serverId == null) {
+        request.response.statusCode = 400;
+        request.response.write(jsonEncode({
+          'success': false,
+          'error': 'Missing required fields: tool_name and server_id',
+        }));
+        await request.response.close();
+        return;
+      }
+
+      // Get the MCP execution service
+      final mcpService = ServiceLocator.instance.get<MCPServerExecutionService>();
+
+      // Check if server is running
+      if (!mcpService.isServerHealthy(serverId)) {
+        debugPrint('⚠️ MCP server $serverId not running, attempting to start...');
+        // TODO: Could auto-start the server here if needed
+        request.response.statusCode = 503;
+        request.response.write(jsonEncode({
+          'success': false,
+          'error': 'MCP server $serverId is not running or unhealthy',
+        }));
+        await request.response.close();
+        return;
+      }
+
+      // Execute the tool via MCP JSON-RPC
+      debugPrint('🔧 Executing MCP tool: $toolName on server $serverId');
+      final result = await mcpService.sendMCPRequest(
+        serverId,
+        'tools/call',
+        {
+          'name': toolName,
+          'arguments': arguments,
+        },
+      );
+
+      stopwatch.stop();
+      debugPrint('✅ MCP tool executed in ${stopwatch.elapsedMilliseconds}ms');
+
+      // Extract the result content
+      final toolResult = result['result'];
+
+      request.response.statusCode = 200;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(jsonEncode({
+        'success': true,
+        'result': toolResult,
+        'execution_time_ms': stopwatch.elapsedMilliseconds,
+      }));
+      await request.response.close();
+
+    } catch (e, stack) {
+      stopwatch.stop();
+      debugPrint('❌ MCP tool execution failed: $e');
+      debugPrint('Stack: $stack');
+
+      request.response.statusCode = 500;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(jsonEncode({
+        'success': false,
+        'error': e.toString(),
+        'execution_time_ms': stopwatch.elapsedMilliseconds,
+      }));
+      await request.response.close();
+    }
   }
 
   /// Handle WebSocket connection from plugin

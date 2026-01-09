@@ -34,7 +34,7 @@ class AppNavigationBar extends ConsumerWidget {
  color: colors.headerBackground,
  border: Border(bottom: BorderSide(color: colors.headerBorder)),
  ),
- child: Container(
+ child: SizedBox(
  height: 60, // Explicit height to maintain header size
  child: Row(
  mainAxisAlignment: MainAxisAlignment.start,
@@ -132,21 +132,7 @@ class AppNavigationBar extends ConsumerWidget {
  ),
  const SizedBox(width: SpacingTokens.lg),
  
- // Demo showcase
- DropdownHeaderButton(
- text: 'Demos',
- icon: Icons.play_circle_outline,
- isActive: _isDemoRoute(currentRoute),
- items: [
- DropdownItem(
- text: 'Demo Showcase',
- icon: Icons.auto_awesome,
- onTap: () => context.go(AppRoutes.demoOnboarding),
- isActive: currentRoute == AppRoutes.demoOnboarding,
- ),
- ],
- ),
- 
+  
  // Spacer to push right-aligned items to the right
  const Spacer(),
 
@@ -172,10 +158,7 @@ class AppNavigationBar extends ConsumerWidget {
  );
  }
 
- bool _isDemoRoute(String route) {
- return route == AppRoutes.demoOnboarding;
- }
- 
+  
  Future<void> _startNewChat(BuildContext context, WidgetRef ref) async {
    try {
      // Create a new conversation

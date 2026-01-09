@@ -1026,7 +1026,7 @@ _buildCompactHeaderWithTabs(),
        child: Container(
          width: MediaQuery.of(context).size.width * 0.8,
          height: MediaQuery.of(context).size.height * 0.8,
-         padding: EdgeInsets.all(SpacingTokens.xl),
+         padding: const EdgeInsets.all(SpacingTokens.xl),
          child: Column(
            crossAxisAlignment: CrossAxisAlignment.start,
            children: [
@@ -1044,7 +1044,7 @@ _buildCompactHeaderWithTabs(),
                      size: 24,
                    ),
                  ),
-                 SizedBox(width: SpacingTokens.sm),
+                 const SizedBox(width: SpacingTokens.sm),
                  Expanded(
                    child: Column(
                      crossAxisAlignment: CrossAxisAlignment.start,
@@ -1071,7 +1071,7 @@ _buildCompactHeaderWithTabs(),
                  ),
                ],
              ),
-             SizedBox(height: SpacingTokens.lg),
+             const SizedBox(height: SpacingTokens.lg),
              
              // Description
              Text(
@@ -1081,7 +1081,7 @@ _buildCompactHeaderWithTabs(),
                  fontWeight: FontWeight.w600,
                ),
              ),
-             SizedBox(height: SpacingTokens.sm),
+             const SizedBox(height: SpacingTokens.sm),
              Text(
                template.description,
                style: TextStyles.bodyMedium.copyWith(
@@ -1090,7 +1090,7 @@ _buildCompactHeaderWithTabs(),
                ),
              ),
              
-             SizedBox(height: SpacingTokens.lg),
+             const SizedBox(height: SpacingTokens.lg),
              
              // Example Use Case
              Text(
@@ -1100,10 +1100,10 @@ _buildCompactHeaderWithTabs(),
                  fontWeight: FontWeight.w600,
                ),
              ),
-             SizedBox(height: SpacingTokens.sm),
+             const SizedBox(height: SpacingTokens.sm),
              Container(
                width: double.infinity,
-               padding: EdgeInsets.all(SpacingTokens.sm),
+               padding: const EdgeInsets.all(SpacingTokens.sm),
                decoration: BoxDecoration(
                  color: ThemeColors(context).primary.withValues(alpha: 0.1),
                  borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
@@ -1119,7 +1119,7 @@ _buildCompactHeaderWithTabs(),
              ),
              
              if (template.mcpServers.isNotEmpty) ...[
-               SizedBox(height: SpacingTokens.lg),
+               const SizedBox(height: SpacingTokens.lg),
                Text(
                  'MCP Integrations',
                  style: TextStyles.bodyLarge.copyWith(
@@ -1127,13 +1127,13 @@ _buildCompactHeaderWithTabs(),
                    fontWeight: FontWeight.w600,
                  ),
                ),
-               SizedBox(height: SpacingTokens.sm),
+               const SizedBox(height: SpacingTokens.sm),
                Wrap(
                  spacing: SpacingTokens.sm,
                  runSpacing: SpacingTokens.sm,
                  children: template.mcpServers.map((server) {
                    return Container(
-                     padding: EdgeInsets.symmetric(
+                     padding: const EdgeInsets.symmetric(
                        horizontal: SpacingTokens.sm,
                        vertical: SpacingTokens.xs,
                      ),
@@ -1150,7 +1150,7 @@ _buildCompactHeaderWithTabs(),
                            size: 14,
                            color: ThemeColors(context).primary,
                          ),
-                         SizedBox(width: SpacingTokens.xs),
+                         const SizedBox(width: SpacingTokens.xs),
                          Text(
                            server,
                            style: TextStyles.bodySmall.copyWith(
@@ -1165,7 +1165,7 @@ _buildCompactHeaderWithTabs(),
                ),
              ],
              
-             Spacer(),
+             const Spacer(),
              
              // Action buttons
              Row(
@@ -1175,7 +1175,7 @@ _buildCompactHeaderWithTabs(),
                    text: 'Close',
                    onPressed: () => Navigator.of(context).pop(),
                  ),
-                 SizedBox(width: SpacingTokens.sm),
+                 const SizedBox(width: SpacingTokens.sm),
                  AsmblButton.primary(
                    text: template.isComingSoon ? 'Coming Soon' : 'Create Agent',
                    onPressed: template.isComingSoon ? null : () {

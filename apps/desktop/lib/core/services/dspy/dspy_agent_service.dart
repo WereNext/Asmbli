@@ -85,21 +85,49 @@ class AgentExecutionStep {
 }
 
 /// Tool definition for agents
+/// Now supports MCP tools with server_id for routing
 class AgentTool {
   final String name;
   final String description;
   final Map<String, dynamic>? parameters;
+  /// MCP server ID that provides this tool (null for built-in tools)
+  final String? serverId;
+  /// JSON Schema for the tool's input parameters
+  final Map<String, dynamic>? inputSchema;
 
   const AgentTool({
     required this.name,
     required this.description,
     this.parameters,
+    this.serverId,
+    this.inputSchema,
   });
 
-  Map<String, String> toMap() => {
+  /// Whether this is an MCP-backed tool
+  bool get isMcpTool => serverId != null;
+
+  /// Convert to DSPy API format
+  Map<String, dynamic> toMap() => {
     'name': name,
     'description': description,
+    if (serverId != null) 'server_id': serverId,
+    if (inputSchema != null) 'input_schema': inputSchema,
   };
+
+  /// Create from MCP tool definition
+  factory AgentTool.fromMcpTool({
+    required String name,
+    required String description,
+    required String serverId,
+    Map<String, dynamic>? inputSchema,
+  }) {
+    return AgentTool(
+      name: name,
+      description: description,
+      serverId: serverId,
+      inputSchema: inputSchema,
+    );
+  }
 }
 
 /// Predefined tools that map to DSPy backend
@@ -211,7 +239,7 @@ class DspyAgentService {
     AgentExecutionMode? mode,
     List<AgentTool>? tools,
     List<String>? documentIds,
-    int maxIterations = 5,
+    int? maxIterations,
   }) async {
     final startTime = DateTime.now();
 
@@ -222,8 +250,12 @@ class DspyAgentService {
     } catch (_) {
       // Agent not found - use defaults
     }
+
+    // Use agent config or provided overrides
     final agentMode = mode ?? _getDefaultMode(agent);
     final agentTools = tools ?? _getAgentTools(agent);
+    final iterations = maxIterations ?? _getMaxIterations(agent);
+    final branches = _getNumBranches(agent);
 
     try {
       switch (agentMode) {
@@ -234,10 +266,10 @@ class DspyAgentService {
           return await _executeChainOfThought(task, startTime);
 
         case AgentExecutionMode.react:
-          return await _executeReact(task, agentTools, maxIterations, startTime);
+          return await _executeReact(task, agentTools, iterations, startTime);
 
         case AgentExecutionMode.treeOfThought:
-          return await _executeTreeOfThought(task, startTime);
+          return await _executeTreeOfThought(task, startTime, numBranches: branches);
 
         case AgentExecutionMode.rag:
           return await _executeRag(task, documentIds ?? [], startTime);
@@ -325,8 +357,12 @@ class DspyAgentService {
     );
   }
 
-  Future<AgentExecutionResult> _executeTreeOfThought(String task, DateTime startTime) async {
-    final response = await _dspy.treeOfThought(task, numBranches: 3);
+  Future<AgentExecutionResult> _executeTreeOfThought(
+    String task,
+    DateTime startTime, {
+    int numBranches = 3,
+  }) async {
+    final response = await _dspy.treeOfThought(task, numBranches: numBranches);
 
     return AgentExecutionResult(
       answer: response.answer,
@@ -375,6 +411,32 @@ class DspyAgentService {
   AgentExecutionMode _getDefaultMode(Agent? agent) {
     if (agent == null) return AgentExecutionMode.react;
 
+    // Check for new DSPy configuration format
+    final dspyConfig = agent.configuration['dspy'] as Map<String, dynamic>?;
+    if (dspyConfig != null) {
+      final agentType = dspyConfig['agentType'] as String?;
+      final reasoningPattern = dspyConfig['reasoningPattern'] as String?;
+
+      // Map DSPy agent type to execution mode
+      switch (agentType) {
+        case 'react':
+          return AgentExecutionMode.react;
+        case 'code':
+          return AgentExecutionMode.chainOfThought; // Code uses CoT reasoning
+        case 'reasoning':
+          // Check reasoning pattern
+          switch (reasoningPattern) {
+            case 'treeOfThought':
+              return AgentExecutionMode.treeOfThought;
+            case 'chainOfThought':
+              return AgentExecutionMode.chainOfThought;
+            default:
+              return AgentExecutionMode.chat;
+          }
+      }
+    }
+
+    // Fallback to legacy format
     final modeStr = agent.configuration['defaultMode'] as String?;
     if (modeStr == null) return AgentExecutionMode.react;
 
@@ -387,6 +449,20 @@ class DspyAgentService {
   List<AgentTool> _getAgentTools(Agent? agent) {
     if (agent == null) return [PredefinedTools.calculator];
 
+    // Check for new DSPy tools format
+    final dspyTools = agent.configuration['dspyTools'] as List<dynamic>?;
+    if (dspyTools != null && dspyTools.isNotEmpty) {
+      return dspyTools.map((toolJson) {
+        final tool = toolJson as Map<String, dynamic>;
+        return AgentTool(
+          name: tool['name'] as String,
+          description: tool['description'] as String? ?? 'Tool',
+          parameters: tool['config'] as Map<String, dynamic>?,
+        );
+      }).toList();
+    }
+
+    // Fallback to legacy format
     final toolNames = agent.configuration['tools'] as List<dynamic>?;
     if (toolNames == null) return [PredefinedTools.calculator];
 
@@ -396,6 +472,30 @@ class DspyAgentService {
               orElse: () => AgentTool(name: name as String, description: 'Custom tool'),
             ))
         .toList();
+  }
+
+  /// Get max iterations from agent config
+  int _getMaxIterations(Agent? agent) {
+    if (agent == null) return 5;
+
+    final dspyConfig = agent.configuration['dspy'] as Map<String, dynamic>?;
+    if (dspyConfig != null) {
+      return dspyConfig['maxIterations'] as int? ?? 5;
+    }
+
+    return agent.configuration['maxIterations'] as int? ?? 5;
+  }
+
+  /// Get number of branches for Tree of Thought
+  int _getNumBranches(Agent? agent) {
+    if (agent == null) return 3;
+
+    final dspyConfig = agent.configuration['dspy'] as Map<String, dynamic>?;
+    if (dspyConfig != null) {
+      return dspyConfig['numBranches'] as int? ?? 3;
+    }
+
+    return 3;
   }
 
   AgentExecutionMode _inferMode(String task, List<String>? documentIds) {

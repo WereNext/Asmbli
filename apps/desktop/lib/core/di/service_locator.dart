@@ -15,7 +15,6 @@ import '../services/agent_context_prompt_service.dart';
 import '../services/theme_service.dart';
 import '../services/model_config_service.dart';
 import '../services/design_tokens_service.dart';
-import '../services/design_history_service.dart';
 import '../../features/context/data/repositories/context_repository.dart';
 import '../services/mcp_settings_service.dart';
 import '../services/claude_api_service.dart';

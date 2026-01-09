@@ -435,18 +435,18 @@ class _AgentConfigurationScreenState extends ConsumerState<AgentConfigurationScr
            child: TabBarView(
              children: [
                // Context tab
-               Padding(
-                 padding: const EdgeInsets.all(SpacingTokens.lg),
+               const Padding(
+                 padding: EdgeInsets.all(SpacingTokens.lg),
                  child: Column(
                    crossAxisAlignment: CrossAxisAlignment.start,
                    children: [
-                     const _CompactSectionHeader(
+                     _CompactSectionHeader(
                        title: 'Give your agent knowledge',
                        icon: Icons.library_books_outlined,
                        tooltip: 'Add context documents, examples, and knowledge to make your agent smarter about specific topics or tasks.',
                      ),
-                     const SizedBox(height: SpacingTokens.componentSpacing),
-                     const Expanded(
+                     SizedBox(height: SpacingTokens.componentSpacing),
+                     Expanded(
                        child: ContextHubWidget(),
                      ),
                    ],

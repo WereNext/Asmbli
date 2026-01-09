@@ -532,10 +532,12 @@ final availableModelConfigsProvider = Provider<Map<String, ModelConfig>>((ref) {
   return service.availableModelConfigs;
 });
 
-// Provider for ready models
+// Provider for ready models - derives from reactive modelConfigsProvider state
 final readyModelConfigsProvider = Provider<List<ModelConfig>>((ref) {
-  final service = ref.watch(modelConfigServiceProvider);
-  return service.getReadyModels();
+  final allConfigs = ref.watch(modelConfigsProvider);
+  return allConfigs.values
+      .where((model) => model.isConfigured)
+      .toList();
 });
 
 // Provider for currently selected model (for chat)

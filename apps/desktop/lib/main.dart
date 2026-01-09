@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -11,17 +10,18 @@ import 'core/constants/routes.dart';
 import 'core/di/service_locator.dart';
 import 'core/error/global_error_handler.dart';
 import 'core/utils/app_logger.dart';
-import 'features/chat/presentation/screens/chat_screen.dart';
 import 'features/chat/presentation/screens/chat_screen_with_contextual.dart';
 // import 'features/chat/presentation/screens/modern_chat_screen_v2.dart'; // Temporarily disabled
 import 'features/chat/presentation/screens/demo_chat_screen.dart'; // Remove after video
 import 'features/settings/presentation/screens/modern_settings_screen.dart';
-import 'features/settings/presentation/screens/apple_style_oauth_screen.dart';
 import 'features/agents/presentation/screens/my_agents_screen.dart';
 import 'features/agents/presentation/screens/agent_configuration_screen.dart';
+import 'features/agents/presentation/screens/agent_execution_screen.dart';
 import 'features/context/presentation/screens/context_library_screen.dart';
 import 'features/agent_wizard/presentation/screens/agent_wizard_screen.dart';
+import 'features/agent_wizard/presentation/screens/dspy_agent_wizard_screen.dart';
 import 'features/agents/presentation/screens/agent_builder_screen.dart';
+import 'features/agents/presentation/screens/dspy_agent_builder_screen.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'features/orchestration/presentation/screens/orchestration_screen.dart';
 import 'features/orchestration/presentation/screens/workflow_browser_screen.dart';
@@ -47,18 +47,18 @@ import 'demo/components/controlled_onboarding_flow.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/services/desktop/hive_cleanup_service.dart';
 import 'core/error/app_error_handler.dart';
-import 'core/services/production_logger.dart';
-import 'core/config/environment_config.dart';
 import 'core/services/vector_integration_service.dart';
 import 'core/services/oauth_auto_refresh_initializer.dart';
 import 'core/security/os_trust_manager.dart';
-import 'core/services/trust_service.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 // DSPy Integration - replaces 50+ fragmented AI services
 import 'core/services/dspy/dspy.dart';
+import 'core/services/model_config_service.dart';
+import 'core/models/model_config.dart';
+import 'core/services/dspy/dspy_backend_setup_service.dart';
 import 'core/services/desktop/desktop_agent_service.dart';
 import 'core/services/desktop/desktop_conversation_service.dart';
+import 'features/setup/presentation/screens/first_run_setup_screen.dart';
 
 void main() async {
   // Set up error zone for the entire app
@@ -327,10 +327,14 @@ class _AsmblDesktopAppState extends ConsumerState<AsmblDesktopApp> {
 final _router = GoRouter(
  initialLocation: AppRoutes.home,
  redirect: (context, state) {
-   // We'll handle onboarding check in HomeScreen instead
+   // We'll handle setup check in HomeScreen instead
    return null;
  },
  routes: [
+ GoRoute(
+ path: AppRoutes.setup,
+ builder: (context, state) => const FirstRunSetupScreen(),
+ ),
  GoRoute(
  path: '/onboarding',
  builder: (context, state) => const OnboardingScreen(),
@@ -418,6 +422,15 @@ GoRoute(
  path: AppRoutes.agentBuilder,
  builder: (context, state) {
    final agentId = state.uri.queryParameters['id'];
+   // Use new DSPy Agent Builder (simplified 6-step wizard)
+   return DspyAgentBuilderScreen(agentId: agentId);
+ },
+ ),
+ // Legacy builder (kept for reference)
+ GoRoute(
+ path: '/agents/builder-legacy',
+ builder: (context, state) {
+   final agentId = state.uri.queryParameters['id'];
    return AgentBuilderScreen(agentId: agentId);
  },
  ),
@@ -433,6 +446,13 @@ GoRoute(
  builder: (context, state) => const AgentConfigurationScreen(),
  ),
  GoRoute(
+ path: '/agents/execute/:agentId',
+ builder: (context, state) {
+ final agentId = state.pathParameters['agentId'] ?? '';
+ return AgentExecutionScreen(agentId: agentId);
+ },
+ ),
+ GoRoute(
  path: AppRoutes.context,
  builder: (context, state) => const ContextLibraryScreen(),
  ),
@@ -440,7 +460,8 @@ GoRoute(
   path: AppRoutes.agentWizard,
   builder: (context, state) {
     final template = state.uri.queryParameters['template'];
-    return AgentWizardScreen(selectedTemplate: template);
+    // Use new DSPy Agent Wizard with hero section and template picker
+    return DspyAgentWizardScreen(templateId: template);
   },
  ),
  GoRoute(
@@ -474,28 +495,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
  @override
  void initState() {
    super.initState();
-   _checkOnboarding();
+   _checkSetupAndOnboarding();
  }
 
- Future<void> _checkOnboarding() async {
+ Future<void> _checkSetupAndOnboarding() async {
    try {
      // Small delay to ensure storage is initialized
      await Future.delayed(const Duration(milliseconds: 100));
-     
+
+     // First, check if DSPy backend setup is complete
+     final setupService = DspyBackendSetupService();
+     final isSetupComplete = await setupService.isSetupComplete();
+
+     if (!isSetupComplete && mounted) {
+       // Redirect to first-run setup
+       context.go(AppRoutes.setup);
+       return;
+     }
+
+     // Setup is done, now check onboarding
      final storage = DesktopStorageService.instance;
      final onboardingCompleted = storage.getPreference<bool>('onboarding_completed') ?? false;
-     
+
      // Check if any API keys are configured
      final apiService = ApiConfigService(storage);
      await apiService.initialize();
      final hasApiKeys = apiService.allApiConfigs.values.any((config) => config.apiKey.isNotEmpty);
-     
+
      // If not onboarded and no API keys, redirect to onboarding
      if (!onboardingCompleted && !hasApiKeys && mounted) {
        context.go('/onboarding');
      }
    } catch (e) {
-     print('Error checking onboarding status: $e');
+     print('Error checking setup/onboarding status: $e');
    }
  }
 
@@ -577,16 +609,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
  icon: Icons.build,
  title: 'Build Agent',
  description: 'Create custom AI agent',
- onTap: () => context.go(AppRoutes.agentBuilder),
+ onTap: () => context.go(AppRoutes.agentWizard),
  ),
  ),
  ],
  ),
  
  const SizedBox(height: SpacingTokens.sectionSpacing),
- 
- // Main Content - Recent Conversations
- const _RecentConversationsSection(),
+
+ // Main Content - Recent Conversations and Loaded Models
+ const Row(
+ crossAxisAlignment: CrossAxisAlignment.start,
+ children: [
+ // Recent Conversations
+ Expanded(
+ child: _RecentConversationsSection(),
+ ),
+ SizedBox(width: SpacingTokens.elementSpacing),
+ // Loaded Models
+ Expanded(
+ child: _LoadedModelsSection(),
+ ),
+ ],
+ ),
  ],
  ),
  ),
@@ -697,6 +742,173 @@ class _RecentConversationsSection extends ConsumerWidget {
  ),
  ],
  ),
+ ),
+ );
+ }
+}
+
+// Loaded Models Section - uses unified ModelConfigService
+class _LoadedModelsSection extends ConsumerWidget {
+ const _LoadedModelsSection();
+
+ @override
+ Widget build(BuildContext context, WidgetRef ref) {
+ final colors = ThemeColors(context);
+ final readyModels = ref.watch(readyModelConfigsProvider);
+
+ return _DashboardSectionEnhanced(
+ title: 'Loaded Models',
+ child: readyModels.isEmpty
+ ? Column(
+ children: [
+ Icon(
+ Icons.memory,
+ size: 32,
+ color: colors.onSurfaceVariant.withValues(alpha: 0.5),
+ ),
+ const SizedBox(height: SpacingTokens.iconSpacing),
+ Text(
+ 'No models configured',
+ style: TextStyles.bodyMedium.copyWith(
+ color: colors.onSurfaceVariant,
+ ),
+ ),
+ const SizedBox(height: SpacingTokens.componentSpacing),
+ AsmblButton.secondary(
+ text: 'Configure Models',
+ icon: Icons.settings,
+ onPressed: () => context.go(AppRoutes.settings),
+ size: AsmblButtonSize.medium,
+ ),
+ ],
+ )
+ : Column(
+ children: [
+ ...readyModels.take(5).map((model) => Padding(
+ padding: const EdgeInsets.only(bottom: SpacingTokens.iconSpacing),
+ child: _ModelItem(model: model),
+ )),
+ if (readyModels.length > 5) ...[
+ const SizedBox(height: SpacingTokens.iconSpacing),
+ Text(
+ '+${readyModels.length - 5} more models',
+ style: TextStyles.caption.copyWith(
+ color: colors.onSurfaceVariant,
+ ),
+ ),
+ ],
+ const SizedBox(height: SpacingTokens.componentSpacing),
+ AsmblButton.outline(
+ text: 'Manage Models',
+ icon: Icons.tune,
+ onPressed: () => context.go(AppRoutes.settings),
+ size: AsmblButtonSize.medium,
+ ),
+ ],
+ ),
+ );
+ }
+}
+
+// Model item for dashboard - displays ModelConfig from unified service
+class _ModelItem extends StatelessWidget {
+ final ModelConfig model;
+
+ const _ModelItem({required this.model});
+
+ @override
+ Widget build(BuildContext context) {
+ final colors = ThemeColors(context);
+
+ // Determine model type icon based on provider/type
+ IconData icon = Icons.smart_toy;
+ Color iconColor = colors.primary;
+
+ if (model.isLocal) {
+ icon = Icons.computer;
+ iconColor = colors.secondary;
+ } else {
+ final provider = model.provider.toLowerCase();
+ if (provider.contains('openai') || provider.contains('gpt')) {
+ icon = Icons.auto_awesome;
+ iconColor = colors.success;
+ } else if (provider.contains('anthropic') || provider.contains('claude')) {
+ icon = Icons.psychology;
+ iconColor = colors.accent;
+ } else if (provider.contains('google') || provider.contains('gemini')) {
+ icon = Icons.diamond;
+ iconColor = colors.warning;
+ }
+ }
+
+ // Status badge
+ final isReady = model.status == ModelStatus.ready;
+ final statusText = model.isLocal ? 'Local' : 'API';
+ final statusColor = isReady ? colors.success : colors.warning;
+
+ return Container(
+ padding: const EdgeInsets.symmetric(
+ vertical: SpacingTokens.componentSpacing,
+ horizontal: SpacingTokens.xs_precise,
+ ),
+ child: Row(
+ children: [
+ Container(
+ padding: const EdgeInsets.all(SpacingTokens.iconSpacing),
+ decoration: BoxDecoration(
+ color: iconColor.withValues(alpha: 0.1),
+ borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+ ),
+ child: Icon(
+ icon,
+ size: 16,
+ color: iconColor,
+ ),
+ ),
+ const SizedBox(width: SpacingTokens.componentSpacing),
+ Expanded(
+ child: Column(
+ crossAxisAlignment: CrossAxisAlignment.start,
+ children: [
+ Text(
+ model.name,
+ style: TextStyles.bodyMedium.copyWith(
+ color: colors.onSurface,
+ fontWeight: FontWeight.w500,
+ ),
+ maxLines: 1,
+ overflow: TextOverflow.ellipsis,
+ ),
+ if (model.modelSize != null) ...[
+ const SizedBox(height: 2),
+ Text(
+ model.displaySize,
+ style: TextStyles.caption.copyWith(
+ color: colors.onSurfaceVariant,
+ ),
+ ),
+ ],
+ ],
+ ),
+ ),
+ Container(
+ padding: const EdgeInsets.symmetric(
+ horizontal: SpacingTokens.iconSpacing,
+ vertical: SpacingTokens.xs_precise,
+ ),
+ decoration: BoxDecoration(
+ color: statusColor.withValues(alpha: 0.1),
+ borderRadius: BorderRadius.circular(BorderRadiusTokens.xs),
+ ),
+ child: Text(
+ statusText,
+ style: TextStyles.caption.copyWith(
+ color: statusColor,
+ fontWeight: FontWeight.w500,
+ ),
+ ),
+ ),
+ ],
  ),
  );
  }

@@ -143,35 +143,35 @@ class _OrchestrationScreenState extends ConsumerState<OrchestrationScreen> {
                   children: [
                     IconButton(
                       onPressed: _createNewWorkflow,
-                      icon: Icon(Icons.add),
+                      icon: const Icon(Icons.add),
                       tooltip: 'New',
                       iconSize: 18,
                     ),
                     const SizedBox(width: SpacingTokens.xs),
                     IconButton(
                       onPressed: _openWorkflowLibrary,
-                      icon: Icon(Icons.folder_open),
+                      icon: const Icon(Icons.folder_open),
                       tooltip: 'Library',
                       iconSize: 18,
                     ),
                     const SizedBox(width: SpacingTokens.xs),
                     IconButton(
                       onPressed: _showTemplateDialog,
-                      icon: Icon(Icons.account_tree),
+                      icon: const Icon(Icons.account_tree),
                       tooltip: 'Templates',
                       iconSize: 18,
                     ),
                     const SizedBox(width: SpacingTokens.xs),
                     IconButton(
                       onPressed: _saveWorkflow,
-                      icon: Icon(Icons.save),
+                      icon: const Icon(Icons.save),
                       tooltip: 'Save',
                       iconSize: 18,
                     ),
                     const SizedBox(width: SpacingTokens.xs),
                     IconButton(
                       onPressed: _exportWorkflow,
-                      icon: Icon(Icons.download),
+                      icon: const Icon(Icons.download),
                       tooltip: 'Export',
                       iconSize: 18,
                     ),
@@ -670,7 +670,7 @@ class _OrchestrationScreenState extends ConsumerState<OrchestrationScreen> {
     return SizedBox(
       width: 200,
       child: DropdownButtonFormField<String>(
-        value: _selectedModelId,
+        initialValue: _selectedModelId,
         decoration: InputDecoration(
           labelText: 'Model',
           border: OutlineInputBorder(
@@ -718,7 +718,7 @@ class _OrchestrationScreenState extends ConsumerState<OrchestrationScreen> {
                       Flexible(
                         child: Text(
                           displayName,
-                          style: TextStyle(fontSize: 12),
+                          style: const TextStyle(fontSize: 12),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

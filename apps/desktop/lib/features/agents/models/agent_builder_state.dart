@@ -41,7 +41,7 @@ class AgentBuilderState extends ChangeNotifier {
   String _personality = 'Professional and helpful';
   String _tone = 'Friendly and approachable';
   String _expertise = 'General knowledge';
-  Map<String, String> _promptTemplates = {};
+  final Map<String, String> _promptTemplates = {};
   bool _useAdvancedPrompt = false;
 
   // Tool Selection
@@ -53,7 +53,7 @@ class AgentBuilderState extends ChangeNotifier {
   // Context/Knowledge
   List<String> _contextDocuments = [];
   List<String> _knowledgeFiles = [];
-  Map<String, dynamic> _contextSettings = {};
+  final Map<String, dynamic> _contextSettings = {};
 
   // Model Configuration
   String _modelProvider = 'OpenAI';
@@ -151,24 +151,65 @@ class AgentBuilderState extends ChangeNotifier {
 
   void setCurrentStep(AgentBuilderStep step) {
     _currentStep = step;
+    _runValidation();
     notifyListeners();
   }
 
   void nextStep() {
-    final steps = AgentBuilderStep.values;
+    const steps = AgentBuilderStep.values;
     final currentIndex = steps.indexOf(_currentStep);
     if (currentIndex < steps.length - 1) {
       _currentStep = steps[currentIndex + 1];
+      _runValidation();
       notifyListeners();
     }
   }
 
   void previousStep() {
-    final steps = AgentBuilderStep.values;
+    const steps = AgentBuilderStep.values;
     final currentIndex = steps.indexOf(_currentStep);
     if (currentIndex > 0) {
       _currentStep = steps[currentIndex - 1];
+      _runValidation();
       notifyListeners();
+    }
+  }
+
+  /// Internal validation helper that doesn't notify listeners
+  void _runValidation() {
+    _validateStepSilent(AgentBuilderStep.basicInfo);
+    _validateStepSilent(AgentBuilderStep.masterPrompt);
+    _validateStepSilent(AgentBuilderStep.modelConfig);
+  }
+
+  /// Validate step without calling notifyListeners
+  void _validateStepSilent(AgentBuilderStep step) {
+    final errors = <String>[];
+
+    switch (step) {
+      case AgentBuilderStep.basicInfo:
+        if (_name.trim().isEmpty) {
+          errors.add('Agent name is required');
+        }
+        break;
+      case AgentBuilderStep.masterPrompt:
+        if (_systemPrompt.trim().isEmpty) {
+          errors.add('Master prompt is required');
+        }
+        break;
+      case AgentBuilderStep.modelConfig:
+        if (_selectedModel.isEmpty) {
+          errors.add('Please select a model');
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (errors.isNotEmpty) {
+      _validationErrors[step] = errors;
+    } else {
+      _validationErrors.remove(step);
     }
   }
 
@@ -492,21 +533,21 @@ class AgentBuilderState extends ChangeNotifier {
   }
 
   bool get isValid {
-    // Validate all required steps
-    _validateStep(AgentBuilderStep.basicInfo);
-    _validateStep(AgentBuilderStep.masterPrompt);
-    _validateStep(AgentBuilderStep.modelConfig);
-
+    // Check existing validation state without modifying it
+    // Use validateAll() to trigger validation before checking
     return _validationErrors.isEmpty;
   }
 
   bool get isConfigurationValid {
-    // Validate all required steps
-    _validateStep(AgentBuilderStep.basicInfo);
-    _validateStep(AgentBuilderStep.masterPrompt);
-    _validateStep(AgentBuilderStep.modelConfig);
-
+    // Check existing validation state without modifying it
+    // Use validateAll() to trigger validation before checking
     return _validationErrors.isEmpty;
+  }
+
+  /// Explicitly validate all steps - call this on user actions, not during build
+  void validateAll() {
+    _runValidation();
+    notifyListeners();
   }
 
   // Agent Creation
@@ -758,7 +799,7 @@ class AgentBuilderState extends ChangeNotifier {
     _selectedCapabilities = List.from(template.capabilities);
     
     // Set the primary model as the selected model for backward compatibility
-    final primaryModel = template.recommendedModels[template.primaryCapability];
+    final primaryModel = template.recommendedModels?[template.primaryCapability];
     if (primaryModel != null) {
       setSelectedModelId(primaryModel);
     }
@@ -817,7 +858,7 @@ class AgentBuilderState extends ChangeNotifier {
       return _modelConfiguration!.getModelForCapability(capability);
     }
     if (_appliedTemplate != null) {
-      return _appliedTemplate!.recommendedModels[capability];
+      return _appliedTemplate!.recommendedModels?[capability];
     }
     return selectedModel; // Fallback to single model
   }
@@ -874,8 +915,8 @@ class AgentBuilderState extends ChangeNotifier {
   /// Get display information for the current configuration
   String getConfigurationSummary() {
     if (_appliedTemplate != null) {
-      final modelCount = _appliedTemplate!.isMultiModel 
-          ? _appliedTemplate!.recommendedModels.length 
+      final modelCount = _appliedTemplate!.isMultiModel
+          ? (_appliedTemplate!.recommendedModels?.length ?? 0)
           : 1;
       return '${_appliedTemplate!.name} template with $modelCount model${modelCount > 1 ? 's' : ''}';
     } else if (_modelConfiguration != null) {

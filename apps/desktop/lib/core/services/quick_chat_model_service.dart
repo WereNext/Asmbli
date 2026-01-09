@@ -227,7 +227,7 @@ class QuickChatModelService {
       await _llmService.chat(
         message: 'Hi',
         modelId: modelId,
-        context: ChatContext(
+        context: const ChatContext(
           messages: [],
           systemPrompt: 'You are a helpful assistant. Respond briefly.',
           metadata: {

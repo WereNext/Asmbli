@@ -73,7 +73,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
               scale: _scaleAnimation.value,
               child: AsmblCard(
                 child: Container(
-                  padding: EdgeInsets.all(SpacingTokens.sm),
+                  padding: const EdgeInsets.all(SpacingTokens.sm),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(BorderRadiusTokens.xl),
                     border: Border.all(
@@ -96,15 +96,15 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildHeader(colors, cardColors),
-                      SizedBox(height: SpacingTokens.xs),
+                      const SizedBox(height: SpacingTokens.xs),
                       _buildDescription(colors),
-                      SizedBox(height: SpacingTokens.xs),
+                      const SizedBox(height: SpacingTokens.xs),
                       _buildConfiguredLLM(colors),
-                      SizedBox(height: SpacingTokens.xs),
+                      const SizedBox(height: SpacingTokens.xs),
                       _buildCapabilities(colors, cardColors),
-                      SizedBox(height: SpacingTokens.xs),
+                      const SizedBox(height: SpacingTokens.xs),
                       _buildReasoning(colors, cardColors),
-                      Spacer(),
+                      const Spacer(),
                       _buildFooter(colors),
                     ],
                   ),
@@ -125,7 +125,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
           alignment: Alignment.bottomRight,
           children: [
             Container(
-              padding: EdgeInsets.all(SpacingTokens.xs),
+              padding: const EdgeInsets.all(SpacingTokens.xs),
               decoration: BoxDecoration(
                 color: cardColors.backgroundColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
@@ -151,7 +151,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             ),
           ],
         ),
-        SizedBox(width: SpacingTokens.sm),
+        const SizedBox(width: SpacingTokens.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,7 +172,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                   _buildActionsMenu(colors),
                 ],
               ),
-              SizedBox(height: 2),
+              const SizedBox(height: 2),
               _buildCategoryBadge(colors, cardColors),
             ],
           ),
@@ -192,12 +192,23 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
       iconSize: 16,
       itemBuilder: (context) => [
         PopupMenuItem(
+          value: 'run',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.play_arrow, size: 14, color: colors.primary),
+              const SizedBox(width: SpacingTokens.xs),
+              Text('Run', style: TextStyles.bodySmall.copyWith(color: colors.primary, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
           value: 'chat',
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.chat_bubble_outline, size: 14, color: colors.onSurface),
-              SizedBox(width: SpacingTokens.xs),
+              const SizedBox(width: SpacingTokens.xs),
               Text('Chat', style: TextStyles.bodySmall),
             ],
           ),
@@ -208,7 +219,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.edit_outlined, size: 14, color: colors.onSurface),
-              SizedBox(width: SpacingTokens.xs),
+              const SizedBox(width: SpacingTokens.xs),
               Text('Edit', style: TextStyles.bodySmall),
             ],
           ),
@@ -225,7 +236,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                 size: 14, 
                 color: colors.onSurface
               ),
-              SizedBox(width: SpacingTokens.xs),
+              const SizedBox(width: SpacingTokens.xs),
               Text(
                 widget.agent.status == AgentStatus.active ? 'Deactivate' : 'Activate',
                 style: TextStyles.bodySmall
@@ -239,7 +250,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.copy_outlined, size: 14, color: colors.onSurface),
-              SizedBox(width: SpacingTokens.xs),
+              const SizedBox(width: SpacingTokens.xs),
               Text('Duplicate', style: TextStyles.bodySmall),
             ],
           ),
@@ -250,7 +261,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.delete_outline, size: 14, color: colors.error),
-              SizedBox(width: SpacingTokens.xs),
+              const SizedBox(width: SpacingTokens.xs),
               Text('Delete', style: TextStyles.bodySmall.copyWith(color: colors.error)),
             ],
           ),
@@ -295,7 +306,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
               size: 12,
               color: colors.onSurfaceVariant,
             ),
-            SizedBox(width: SpacingTokens.xs),
+            const SizedBox(width: SpacingTokens.xs),
             Text(
               'Configured LLM',
               style: TextStyles.caption.copyWith(
@@ -305,9 +316,9 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             ),
           ],
         ),
-        SizedBox(height: SpacingTokens.xxs),
+        const SizedBox(height: SpacingTokens.xxs),
         Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: SpacingTokens.sm,
             vertical: SpacingTokens.xs,
           ),
@@ -326,7 +337,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                 size: 12,
                 color: _getProviderColor(provider, colors),
               ),
-              SizedBox(width: SpacingTokens.xs),
+              const SizedBox(width: SpacingTokens.xs),
               Flexible(
                 child: Text(
                   displayName,
@@ -338,9 +349,9 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                 ),
               ),
               if (isLocal) ...[
-                SizedBox(width: SpacingTokens.xs),
+                const SizedBox(width: SpacingTokens.xs),
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: SpacingTokens.xxs,
                     vertical: 1,
                   ),
@@ -430,7 +441,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
               size: 12,
               color: colors.onSurfaceVariant,
             ),
-            SizedBox(width: SpacingTokens.xs),
+            const SizedBox(width: SpacingTokens.xs),
             Text(
               'Capabilities',
               style: TextStyles.caption.copyWith(
@@ -440,13 +451,13 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             ),
           ],
         ),
-        SizedBox(height: SpacingTokens.xxs),
+        const SizedBox(height: SpacingTokens.xxs),
         Wrap(
           spacing: SpacingTokens.xxs,
           runSpacing: SpacingTokens.xxs,
           children: widget.agent.capabilities.take(3).map((capability) {
             return Container(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: SpacingTokens.xs,
                 vertical: SpacingTokens.xxs,
               ),
@@ -493,7 +504,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
               size: 12,
               color: colors.onSurfaceVariant,
             ),
-            SizedBox(width: SpacingTokens.xs),
+            const SizedBox(width: SpacingTokens.xs),
             Text(
               'Reasoning',
               style: TextStyles.caption.copyWith(
@@ -503,7 +514,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             ),
           ],
         ),
-        SizedBox(height: SpacingTokens.xxs),
+        const SizedBox(height: SpacingTokens.xxs),
         
         // Show reasoning status and workflows
         Row(
@@ -511,7 +522,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             // Reasoning enabled indicator
             if (hasReasoningFlows) ...[
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: SpacingTokens.xs,
                   vertical: SpacingTokens.xxs,
                 ),
@@ -530,7 +541,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                       size: 10,
                       color: colors.success,
                     ),
-                    SizedBox(width: SpacingTokens.xxs),
+                    const SizedBox(width: SpacingTokens.xxs),
                     Text(
                       'Visual Reasoning',
                       style: TextStyles.caption.copyWith(
@@ -541,13 +552,13 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                   ],
                 ),
               ),
-              if (reasoningWorkflows.isNotEmpty) SizedBox(width: SpacingTokens.xs),
+              if (reasoningWorkflows.isNotEmpty) const SizedBox(width: SpacingTokens.xs),
             ],
             
             // Workflow count
             if (reasoningWorkflows.isNotEmpty) ...[
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: SpacingTokens.xs,
                   vertical: SpacingTokens.xxs,
                 ),
@@ -566,7 +577,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                       size: 10,
                       color: cardColors.accentColor,
                     ),
-                    SizedBox(width: SpacingTokens.xxs),
+                    const SizedBox(width: SpacingTokens.xxs),
                     Text(
                       '${reasoningWorkflows.length} workflow${reasoningWorkflows.length == 1 ? '' : 's'}',
                       style: TextStyles.caption.copyWith(
@@ -581,7 +592,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
             
             // Default workflow indicator
             if (defaultWorkflow != null) ...[
-              SizedBox(width: SpacingTokens.xs),
+              const SizedBox(width: SpacingTokens.xs),
               Icon(
                 Icons.star_outline,
                 size: 10,
@@ -594,7 +605,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
         // If no visual reasoning but might have basic reasoning patterns
         if (!hasReasoningFlows && reasoningWorkflows.isEmpty) ...[
           Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: SpacingTokens.xs,
               vertical: SpacingTokens.xxs,
             ),
@@ -629,7 +640,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
                 size: 12,
                 color: colors.onSurfaceVariant,
               ),
-              SizedBox(width: SpacingTokens.xs),
+              const SizedBox(width: SpacingTokens.xs),
               Text(
                 _getLastUsedText(),
                 style: TextStyles.caption.copyWith(
@@ -640,7 +651,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: SpacingTokens.xs,
             vertical: SpacingTokens.xxs,
           ),
@@ -703,10 +714,10 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
   }
 
   Widget _buildCategoryBadge(ThemeColors colors, _CardColors cardColors) {
-    final category = widget.agent.configuration?['category'] as String? ?? 'General';
+    final category = widget.agent.configuration['category'] as String? ?? 'General';
     
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: SpacingTokens.xs,
         vertical: SpacingTokens.xxs,
       ),
@@ -767,6 +778,10 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
 
   void _handleMenuAction(String action) {
     switch (action) {
+      case 'run':
+        // Navigate to agent execution screen
+        context.go('/agents/execute/${widget.agent.id}');
+        break;
       case 'chat':
         if (widget.onOpenChat != null) {
           widget.onOpenChat!();
@@ -803,7 +818,7 @@ class _EnhancedAgentCardState extends State<EnhancedAgentCard>
 
   /// Get themed colors for the card based on agent category
   _CardColors _getCardColors(ThemeColors colors) {
-    final category = widget.agent.configuration?['category'] as String? ?? 'General';
+    final category = widget.agent.configuration['category'] as String? ?? 'General';
     
     Color baseColor;
     switch (category.toLowerCase()) {

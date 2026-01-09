@@ -65,10 +65,8 @@ class _AgentBuilderScreenState extends ConsumerState<AgentBuilderScreen> with Ti
       try {
         final agentService = ref.read(agentServiceProvider);
         final agent = await agentService.getAgent(widget.agentId!);
-        if (agent != null) {
-          builderState.startEditing(widget.agentId!, agent);
-        }
-      } catch (e) {
+        builderState.startEditing(widget.agentId!, agent);
+            } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to load agent: $e')),
@@ -220,7 +218,7 @@ class _AgentBuilderScreenState extends ConsumerState<AgentBuilderScreen> with Ti
               builderState.setCurrentStep(AgentBuilderStep.values[index]);
               _tabController.animateTo(index);
             },
-            children: [
+            children: const [
               BasicInfoComponent(),
               MasterPromptEditorComponent(),
               ToolSelectorComponent(),
@@ -433,8 +431,8 @@ class _AgentBuilderScreenState extends ConsumerState<AgentBuilderScreen> with Ti
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Unsaved Changes'),
-        content: Text('You have unsaved changes. Do you want to discard them?'),
+        title: const Text('Unsaved Changes'),
+        content: const Text('You have unsaved changes. Do you want to discard them?'),
         actions: [
           AsmblButton.secondary(
             text: 'Cancel',

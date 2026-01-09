@@ -636,7 +636,9 @@ class AgentBusinessService extends BaseBusinessService {
     }
 
     // Validate model exists and is configured
-    if (!_modelService.isModelAvailable(modelId)) {
+    // Allow DSPy model IDs (format: provider/model-name) as they're handled by DSPy backend
+    final isDspyModelId = _isDspyModelId(modelId);
+    if (!isDspyModelId && !_modelService.isModelAvailable(modelId)) {
       return ValidationResult(
         isValid: false,
         error: 'Model "$modelId" is not available',
@@ -691,6 +693,45 @@ class AgentBusinessService extends BaseBusinessService {
     }
 
     return const ValidationResult(isValid: true);
+  }
+
+  /// Check if modelId should skip strict local validation
+  /// DSPy models and Ollama models are handled by their respective backends
+  bool _isDspyModelId(String modelId) {
+    // DSPy model IDs use provider/model format (e.g., anthropic/claude-3-sonnet)
+    const dspyProviders = [
+      'anthropic/',
+      'openai/',
+      'google/',
+      'ollama/',
+      'groq/',
+      'together/',
+      'anyscale/',
+      'mistral/',
+      'cohere/',
+    ];
+    if (dspyProviders.any((prefix) => modelId.startsWith(prefix))) {
+      return true;
+    }
+
+    // Also allow Ollama model IDs (format: model:tag) and display names
+    // Examples: "gemma3:4b", "llama3:8b", "Gemma3 4.3B", "Llama 3 8B"
+    if (modelId.contains(':')) {
+      return true; // Ollama model ID format
+    }
+
+    // Check for common Ollama model name patterns (display names)
+    final lowerModelId = modelId.toLowerCase();
+    const ollamaModelPatterns = [
+      'gemma', 'llama', 'mistral', 'phi', 'qwen', 'codellama',
+      'vicuna', 'deepseek', 'openchat', 'neural', 'dolphin',
+      'wizardcoder', 'starcoder', 'codestral', 'command-r',
+    ];
+    if (ollamaModelPatterns.any((pattern) => lowerModelId.contains(pattern))) {
+      return true;
+    }
+
+    return false;
   }
 
   Future<String> _generateSystemPrompt({

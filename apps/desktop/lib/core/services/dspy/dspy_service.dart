@@ -4,6 +4,7 @@
 /// existing Asmbli architecture (Riverpod, ServiceLocator, etc.)
 ///
 /// This is the service you use in your Flutter widgets and providers.
+library;
 
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -244,18 +245,88 @@ class DspyService {
   // ============== Agent ==============
 
   /// Execute a ReAct agent
+  ///
+  /// [tools] - Tool definitions. For MCP tools, include server_id.
+  /// [flutterCallbackUrl] - Callback URL for MCP tool execution (default: http://localhost:3000)
   Future<DspyAgentResponse> executeAgent(
     String task, {
-    List<Map<String, String>>? tools,
+    List<Map<String, dynamic>>? tools,
     int maxIterations = 5,
     String? model,
+    String? agentId,
+    String? flutterCallbackUrl,
   }) async {
     _ensureConnected();
+
+    // Check if any tools are MCP tools (have server_id)
+    final hasMcpTools = tools?.any((t) => t.containsKey('server_id')) ?? false;
+
+    // If we have MCP tools, ensure we have a callback URL
+    final callbackUrl = hasMcpTools
+        ? (flutterCallbackUrl ?? 'http://localhost:3000')
+        : null;
+
     return _client.executeAgent(
       task,
       tools: tools,
       maxIterations: maxIterations,
       model: model ?? config.defaultModel,
+      agentId: agentId,
+      flutterCallbackUrl: callbackUrl,
+    );
+  }
+
+  /// Execute an agent with streaming updates via SSE
+  ///
+  /// Returns a Stream of [DspyStreamEvent] with real-time updates:
+  /// - status: Status messages (thinking, calling tool, etc.)
+  /// - tool_call: When agent calls a tool
+  /// - tool_result: Results from tool execution
+  /// - step: Complete reasoning steps
+  /// - error: If something goes wrong
+  /// - done: Final result with answer
+  ///
+  /// Example usage in a widget:
+  /// ```dart
+  /// StreamBuilder<DspyStreamEvent>(
+  ///   stream: dspyService.streamAgent('Search for X', tools: mcpTools),
+  ///   builder: (context, snapshot) {
+  ///     if (!snapshot.hasData) return CircularProgressIndicator();
+  ///     final event = snapshot.data!;
+  ///     if (event.type == DspyStreamEventType.status) {
+  ///       return Text(event.statusMessage ?? '');
+  ///     }
+  ///     // ... handle other events
+  ///   },
+  /// )
+  /// ```
+  Stream<DspyStreamEvent> streamAgent(
+    String task, {
+    List<Map<String, dynamic>>? tools,
+    int maxIterations = 5,
+    String? model,
+    String? agentId,
+    String? conversationId,
+    String? flutterCallbackUrl,
+  }) {
+    _ensureConnected();
+
+    // Check if any tools are MCP tools (have server_id)
+    final hasMcpTools = tools?.any((t) => t.containsKey('server_id')) ?? false;
+
+    // If we have MCP tools, ensure we have a callback URL
+    final callbackUrl = hasMcpTools
+        ? (flutterCallbackUrl ?? 'http://localhost:3000')
+        : null;
+
+    return _client.streamAgent(
+      task,
+      tools: tools,
+      maxIterations: maxIterations,
+      model: model ?? config.defaultModel,
+      agentId: agentId,
+      conversationId: conversationId,
+      flutterCallbackUrl: callbackUrl,
     );
   }
 

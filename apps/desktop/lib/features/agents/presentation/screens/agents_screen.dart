@@ -14,7 +14,7 @@ class AgentsScreen extends StatelessWidget {
  IconButton(
  icon: const Icon(Icons.add),
  onPressed: () {
- context.push(AppRoutes.agentBuilder);
+ context.push(AppRoutes.agentWizard);
  },
  ),
  ],

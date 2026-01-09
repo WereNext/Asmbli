@@ -56,14 +56,14 @@ class _DesignAgentSidebarState extends ConsumerState<DesignAgentSidebar> {
   final TextEditingController _chatController = TextEditingController();
   
   // LLM service for single model approach
-  bool _isServiceAvailable = false;
+  final bool _isServiceAvailable = false;
   UnifiedLLMService? _llmService;
   
   // Model selection state
   List<ModelConfig> _availableModels = [];
   String? _selectedPlanModelId;
   String? _selectedActModelId;
-  bool _showModelSelector = false;
+  final bool _showModelSelector = false;
   
   // Basic spec state for context
   String _projectType = 'web_app';
@@ -71,7 +71,7 @@ class _DesignAgentSidebarState extends ConsumerState<DesignAgentSidebar> {
   List<String> _selectedPlatforms = ['responsive_web'];
   
   // Context state
-  List<DesignContext> _contexts = [];
+  final List<DesignContext> _contexts = [];
   final _contextController = TextEditingController();
   String _contextType = 'brand_guidelines';
   
@@ -321,7 +321,7 @@ class _DesignAgentSidebarState extends ConsumerState<DesignAgentSidebar> {
           ),
           // Clear chat button
           IconButton(
-            icon: Icon(Icons.clear_all, size: 16),
+            icon: const Icon(Icons.clear_all, size: 16),
             onPressed: _clearChat,
             style: IconButton.styleFrom(
               foregroundColor: colors.onSurfaceVariant,
@@ -458,7 +458,7 @@ class _DesignAgentSidebarState extends ConsumerState<DesignAgentSidebar> {
               ),
               const Spacer(),
               IconButton(
-                icon: Icon(Icons.add, size: 16),
+                icon: const Icon(Icons.add, size: 16),
                 onPressed: _showAddContextDialog,
                 style: IconButton.styleFrom(
                   foregroundColor: colors.primary,
@@ -531,7 +531,7 @@ class _DesignAgentSidebarState extends ConsumerState<DesignAgentSidebar> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close, size: 12),
+            icon: const Icon(Icons.close, size: 12),
             onPressed: () {
               setState(() {
                 _contexts.remove(context);
@@ -691,7 +691,7 @@ class _DesignAgentSidebarState extends ConsumerState<DesignAgentSidebar> {
             child: DropdownButton<String>(
               value: _selectedPlanModelId,
               isExpanded: true,
-              underline: SizedBox.shrink(),
+              underline: const SizedBox.shrink(),
               style: TextStyles.caption.copyWith(color: colors.onSurface),
               items: _availableModels.map((model) {
                 return DropdownMenuItem<String>(
@@ -731,7 +731,7 @@ class _DesignAgentSidebarState extends ConsumerState<DesignAgentSidebar> {
             child: DropdownButton<String>(
               value: _selectedActModelId,
               isExpanded: true,
-              underline: SizedBox.shrink(),
+              underline: const SizedBox.shrink(),
               style: TextStyles.caption.copyWith(color: colors.onSurface),
               items: _availableModels.map((model) {
                 return DropdownMenuItem<String>(
@@ -1079,7 +1079,7 @@ class _DesignAgentSidebarState extends ConsumerState<DesignAgentSidebar> {
     try {
       // Use the direct LLM service with the selected model
       if (_llmService != null) {
-        final systemPrompt = '''You are an expert UI/UX design planner. Your role is to:
+        const systemPrompt = '''You are an expert UI/UX design planner. Your role is to:
 1. Analyze design requirements and break them into clear, actionable steps
 2. Consider user experience, accessibility, and modern design principles
 3. Suggest appropriate design patterns and component structures
@@ -1457,13 +1457,13 @@ Focus on concrete actions and specific implementation details.''';
       builder: (context) {
         final colors = ThemeColors(context);
         return AlertDialog(
-          title: Text('Add Design Context'),
+          title: const Text('Add Design Context'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: _contextType,
-                decoration: InputDecoration(
+                initialValue: _contextType,
+                decoration: const InputDecoration(
                   labelText: 'Context Type',
                   border: OutlineInputBorder(),
                 ),
@@ -1492,7 +1492,7 @@ Focus on concrete actions and specific implementation details.''';
               const SizedBox(height: SpacingTokens.md),
               TextField(
                 controller: _contextController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Context Name',
                   hintText: 'e.g., Brand Colors, Logo Guidelines',
                   border: OutlineInputBorder(),
@@ -1503,7 +1503,7 @@ Focus on concrete actions and specific implementation details.''';
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -1513,7 +1513,7 @@ Focus on concrete actions and specific implementation details.''';
                   Navigator.pop(context);
                 }
               },
-              child: Text('Add'),
+              child: const Text('Add'),
             ),
           ],
         );
@@ -1578,7 +1578,7 @@ Focus on concrete actions and specific implementation details.''';
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.edit, size: 16),
+                  icon: const Icon(Icons.edit, size: 16),
                   onPressed: () {
                     // Switch to chat tab for editing
                     setState(() {
@@ -1836,7 +1836,7 @@ Focus on concrete actions and specific implementation details.''';
                   ),
                   const SizedBox(height: SpacingTokens.sm),
                   DropdownButtonFormField<String>(
-                    value: _contextType,
+                    initialValue: _contextType,
                     decoration: InputDecoration(
                       labelText: 'Context Type',
                       border: OutlineInputBorder(
@@ -1847,7 +1847,7 @@ Focus on concrete actions and specific implementation details.''';
                         vertical: SpacingTokens.sm,
                       ),
                     ),
-                    items: [
+                    items: const [
                       DropdownMenuItem(value: 'brand_guidelines', child: Text('Brand Guidelines')),
                       DropdownMenuItem(value: 'existing_design', child: Text('Existing Design')),
                       DropdownMenuItem(value: 'inspiration', child: Text('Design Inspiration')),
@@ -2051,7 +2051,7 @@ Focus on concrete actions and specific implementation details.''';
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close, size: 14),
+            icon: const Icon(Icons.close, size: 14),
             onPressed: () {
               setState(() {
                 _contexts.remove(context);
@@ -2113,11 +2113,11 @@ Focus on concrete actions and specific implementation details.''';
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
+        content: const Row(
           children: [
             Icon(Icons.check, color: Colors.white, size: 16),
-            const SizedBox(width: 8),
-            const Text('Specifications saved successfully'),
+            SizedBox(width: 8),
+            Text('Specifications saved successfully'),
           ],
         ),
         backgroundColor: ThemeColors(context).success,
@@ -2171,7 +2171,7 @@ Focus on concrete actions and specific implementation details.''';
   String _addContextualCanvasFeedback(String response, String userMessage) {
     // Keep it simple - only add feedback for specific successful actions
     if (response.contains('created') || response.contains('added')) {
-      return response + '\n\n🎨 *Try variations: different colors, sizes, or positions*';
+      return '$response\n\n🎨 *Try variations: different colors, sizes, or positions*';
     }
     return response;
   }

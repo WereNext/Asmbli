@@ -2,7 +2,10 @@
 class AppRoutes {
  // Private constructor to prevent instantiation
  AppRoutes._();
- 
+
+ // Setup routes
+ static const String setup = '/setup';
+
  // Main routes
  static const String home = '/';
  static const String chat = '/chat';
@@ -21,6 +24,7 @@ class AppRoutes {
  static const String marketplace = '/marketplace';
  static const String canvas = '/canvas';
  static const String canvasLibrary = '/canvas-library';
+ static const String agentExecute = '/agents/execute'; // Dynamic: /agents/execute/:id
  
  // Demo routes
  static const String demoChat = '/demo-chat';
@@ -30,6 +34,7 @@ class AppRoutes {
  
  // Route names for easier identification
  static const Map<String, String> routeNames = {
+ setup: 'Setup',
  home: 'Home',
  chat: 'Chat',
  chatV2: 'Chat V2',
@@ -60,6 +65,7 @@ class AppRoutes {
  
  // All valid routes list
  static const List<String> allRoutes = [
+ setup,
  home,
  chat,
  chatV2,

@@ -241,7 +241,7 @@ class _EnhancedModelConfigComponentState extends ConsumerState<EnhancedModelConf
               const SizedBox(height: SpacingTokens.lg),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -400,7 +400,7 @@ class _EnhancedModelConfigComponentState extends ConsumerState<EnhancedModelConf
           
           // Model selection dropdown
           DropdownButtonFormField<String>(
-            value: builderState.selectedModelId,
+            initialValue: builderState.selectedModelId,
             decoration: InputDecoration(
               labelText: 'Model',
               border: OutlineInputBorder(
@@ -478,7 +478,7 @@ class _EnhancedModelConfigComponentState extends ConsumerState<EnhancedModelConf
             if (_selectedTemplate!.isMultiModel) ...[
               const SizedBox(height: SpacingTokens.sm),
               Text(
-                'Models: ${_selectedTemplate!.recommendedModels.length} specialized models',
+                'Models: ${_selectedTemplate!.recommendedModels?.length ?? 0} specialized models',
                 style: TextStyles.bodyMedium.copyWith(
                   color: colors.onSurfaceVariant,
                 ),

@@ -12,6 +12,7 @@
 /// Custom Modules (built on DSPy primitives):
 /// - TreeOfThoughtModule - Multi-path reasoning (custom, uses ChainOfThought internally)
 /// - CodeAgent - Code generation without Deno requirement (custom)
+library;
 
 /// Agent types available in DSPy backend
 enum DspyAgentType {
@@ -19,9 +20,9 @@ enum DspyAgentType {
   /// API: dspy.ReAct(signature="question -> answer", tools=[...], max_iters=10)
   /// Best for: Tasks requiring tool use, multi-step problem solving
   react(
-    'ReAct Agent',
-    'Reasoning and Acting agent that uses tools to complete tasks',
-    'Uses official dspy.ReAct with think-act-observe loop',
+    'Task Agent',
+    'Complete tasks by browsing, searching, and using tools',
+    'Best for: research, web tasks, file management, and multi-step work',
   ),
 
   /// Code Agent - Code generation with optional execution
@@ -29,17 +30,17 @@ enum DspyAgentType {
   /// Best for: Code generation, programming tasks
   code(
     'Code Agent',
-    'Generates and optionally executes code',
-    'Specialized for programming tasks with code verification',
+    'Write, review, and explain code',
+    'Best for: programming, debugging, code review, and technical docs',
   ),
 
   /// Reasoning Agent - Pure reasoning without tools
   /// Uses: dspy.ChainOfThought or dspy.Predict
   /// Best for: Analysis, Q&A, reasoning tasks
   reasoning(
-    'Reasoning Agent',
-    'Pure reasoning agent without tool use',
-    'Best for analysis, Q&A, and logical reasoning tasks',
+    'Thinking Agent',
+    'Analyze, plan, and reason through complex problems',
+    'Best for: analysis, planning, Q&A, and logical reasoning',
   );
 
   const DspyAgentType(this.displayName, this.description, this.details);
@@ -54,8 +55,8 @@ enum DspyReasoningPattern {
   /// Basic - Uses official dspy.Predict
   /// API: dspy.Predict("question -> answer")
   basic(
-    'Basic',
-    'Direct answer without explicit reasoning',
+    'Quick',
+    'Fast, direct answers',
     'basic',
   ),
 
@@ -63,8 +64,8 @@ enum DspyReasoningPattern {
   /// API: dspy.ChainOfThought(signature, rationale_field=None)
   /// "Teaches the LM to think step-by-step before committing to response"
   chainOfThought(
-    'Chain of Thought',
-    'Step-by-step reasoning before answering (official DSPy)',
+    'Step-by-Step',
+    'Thinks through each step before answering',
     'chain_of_thought',
   ),
 
@@ -72,8 +73,8 @@ enum DspyReasoningPattern {
   /// Built on: dspy.ChainOfThought (explores multiple approaches)
   /// Note: Not an official DSPy module, but uses official primitives
   treeOfThought(
-    'Tree of Thought',
-    'Explores multiple approaches, synthesizes best answer (custom)',
+    'Thorough',
+    'Considers multiple approaches to find the best answer',
     'tree_of_thought',
   );
 
@@ -206,7 +207,7 @@ class DspyAgentConfig {
   final String description;
   final DspyAgentType agentType;
   final DspyReasoningPattern reasoningPattern;
-  final DspyModel model;
+  final String modelId; // Dynamic model ID from ModelConfigService
   final List<DspyTool> tools;
   final int maxIterations;
   final int numBranches; // For Tree of Thought
@@ -219,7 +220,7 @@ class DspyAgentConfig {
     required this.description,
     required this.agentType,
     required this.reasoningPattern,
-    required this.model,
+    required this.modelId,
     this.tools = const [],
     this.maxIterations = 5,
     this.numBranches = 3,
@@ -231,7 +232,7 @@ class DspyAgentConfig {
   Map<String, dynamic> toBackendRequest(String task) {
     return {
       'task': task,
-      'model': model.modelId,
+      'model': modelId,
       'tools': tools.map((t) => t.toJson()).toList(),
       'max_iterations': maxIterations,
       'pattern': reasoningPattern.backendValue,
@@ -253,10 +254,7 @@ class DspyAgentConfig {
         (p) => p.name == json['reasoningPattern'],
         orElse: () => DspyReasoningPattern.chainOfThought,
       ),
-      model: DspyModel.values.firstWhere(
-        (m) => m.modelId == json['model'],
-        orElse: () => DspyModel.claude3Sonnet,
-      ),
+      modelId: json['model'] as String? ?? 'claude-3-sonnet-20240229',
       tools: (json['tools'] as List<dynamic>?)
           ?.map((t) => DspyTool.fromJson(t as Map<String, dynamic>))
           .toList() ?? [],
@@ -273,7 +271,7 @@ class DspyAgentConfig {
     'description': description,
     'agentType': agentType.name,
     'reasoningPattern': reasoningPattern.name,
-    'model': model.modelId,
+    'model': modelId,
     'tools': tools.map((t) => t.toJson()).toList(),
     'maxIterations': maxIterations,
     'numBranches': numBranches,
@@ -287,7 +285,7 @@ class DspyAgentConfig {
     String? description,
     DspyAgentType? agentType,
     DspyReasoningPattern? reasoningPattern,
-    DspyModel? model,
+    String? modelId,
     List<DspyTool>? tools,
     int? maxIterations,
     int? numBranches,
@@ -300,7 +298,7 @@ class DspyAgentConfig {
       description: description ?? this.description,
       agentType: agentType ?? this.agentType,
       reasoningPattern: reasoningPattern ?? this.reasoningPattern,
-      model: model ?? this.model,
+      modelId: modelId ?? this.modelId,
       tools: tools ?? this.tools,
       maxIterations: maxIterations ?? this.maxIterations,
       numBranches: numBranches ?? this.numBranches,
@@ -315,8 +313,8 @@ class DspyAgentConfig {
     final now = DateTime.now().toIso8601String();
     return {
       // Model configuration
-      'modelId': model.modelId,
-      'modelProvider': model.provider,
+      'modelId': modelId,
+      'modelProvider': _getProviderFromModelId(modelId),
       'temperature': modelParameters['temperature'] ?? 0.4,
       'maxTokens': modelParameters['max_tokens'] ?? 2000,
 
@@ -357,6 +355,20 @@ class DspyAgentConfig {
         return 'Development';
       case DspyAgentType.reasoning:
         return 'Reasoning';
+    }
+  }
+
+  /// Infer provider from model ID string
+  String _getProviderFromModelId(String id) {
+    final lower = id.toLowerCase();
+    if (lower.contains('claude') || lower.contains('anthropic')) {
+      return 'Anthropic';
+    } else if (lower.contains('gpt') || lower.contains('openai')) {
+      return 'OpenAI';
+    } else if (lower.contains('gemini') || lower.contains('google')) {
+      return 'Google';
+    } else {
+      return 'Local'; // Assume local/Ollama for unknown models
     }
   }
 

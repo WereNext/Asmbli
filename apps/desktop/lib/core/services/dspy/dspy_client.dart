@@ -7,6 +7,7 @@
 ///   final client = DspyClient(baseUrl: 'http://localhost:8000');
 ///   final response = await client.chat('What is 2 + 2?');
 ///   print(response.response); // "4"
+library;
 
 import 'dart:async';
 import 'dart:convert';
@@ -207,6 +208,94 @@ class DspyHealthResponse {
   bool get isHealthy => status == 'healthy';
 }
 
+// ============== SSE Streaming Models ==============
+
+/// Types of events in agent streaming
+enum DspyStreamEventType {
+  status,     // Agent status update (thinking, calling tool, etc.)
+  token,      // Text token for streaming response
+  toolCall,   // Agent is calling a tool
+  toolResult, // Tool returned a result
+  step,       // Complete reasoning step
+  error,      // Error occurred
+  done,       // Agent finished
+}
+
+/// A streaming event from the agent
+class DspyStreamEvent {
+  final DspyStreamEventType type;
+  final Map<String, dynamic> data;
+  final DateTime timestamp;
+
+  DspyStreamEvent({
+    required this.type,
+    required this.data,
+    required this.timestamp,
+  });
+
+  factory DspyStreamEvent.fromJson(Map<String, dynamic> json) {
+    final eventStr = json['event'] as String;
+    DspyStreamEventType type;
+    switch (eventStr) {
+      case 'status':
+        type = DspyStreamEventType.status;
+        break;
+      case 'token':
+        type = DspyStreamEventType.token;
+        break;
+      case 'tool_call':
+        type = DspyStreamEventType.toolCall;
+        break;
+      case 'tool_result':
+        type = DspyStreamEventType.toolResult;
+        break;
+      case 'step':
+        type = DspyStreamEventType.step;
+        break;
+      case 'error':
+        type = DspyStreamEventType.error;
+        break;
+      case 'done':
+        type = DspyStreamEventType.done;
+        break;
+      default:
+        type = DspyStreamEventType.status;
+    }
+
+    return DspyStreamEvent(
+      type: type,
+      data: json['data'] as Map<String, dynamic>? ?? {},
+      timestamp: DateTime.tryParse(json['timestamp'] as String? ?? '') ?? DateTime.now(),
+    );
+  }
+
+  /// Get status message if this is a status event
+  String? get statusMessage => type == DspyStreamEventType.status
+      ? data['message'] as String?
+      : null;
+
+  /// Get tool name if this is a tool_call event
+  String? get toolName => type == DspyStreamEventType.toolCall
+      ? data['tool'] as String?
+      : null;
+
+  /// Get final answer if this is a done event
+  String? get answer => type == DspyStreamEventType.done
+      ? data['answer'] as String?
+      : null;
+
+  /// Check if this is a final event
+  bool get isDone => type == DspyStreamEventType.done;
+
+  /// Check if this is an error event
+  bool get isError => type == DspyStreamEventType.error;
+
+  /// Get error message if this is an error event
+  String? get errorMessage => type == DspyStreamEventType.error
+      ? data['error'] as String?
+      : null;
+}
+
 /// Document upload response
 class DspyDocumentResponse {
   final String documentId;
@@ -370,22 +459,138 @@ class DspyClient {
   // ============== Agent ==============
 
   /// Execute a ReAct agent
+  ///
+  /// [tools] - List of tool definitions. Each tool should have:
+  ///   - 'name': Tool name
+  ///   - 'description': Tool description
+  ///   - 'server_id' (optional): MCP server ID if this is an MCP tool
+  ///   - 'input_schema' (optional): JSON Schema for tool parameters
+  ///
+  /// [flutterCallbackUrl] - URL for Flutter to receive MCP tool execution callbacks.
+  ///   Required if any tools have a server_id (are MCP tools).
+  ///   Typically 'http://localhost:3000' (Plugin Bridge Server).
   Future<DspyAgentResponse> executeAgent(
     String task, {
-    List<Map<String, String>>? tools,
+    List<Map<String, dynamic>>? tools,
     int maxIterations = 5,
     String? model,
+    String? agentId,
+    String? flutterCallbackUrl,
   }) async {
     final response = await _post('/agent/execute', {
       'task': task,
-      if (tools != null)
-        'tools': tools
-            .map((t) => {'name': t['name'], 'description': t['description']})
-            .toList(),
+      if (tools != null) 'tools': tools,
       'max_iterations': maxIterations,
       if (model != null) 'model': model,
+      if (agentId != null) 'agent_id': agentId,
+      if (flutterCallbackUrl != null) 'flutter_callback_url': flutterCallbackUrl,
     });
     return DspyAgentResponse.fromJson(response);
+  }
+
+  /// Execute an agent with streaming updates via SSE
+  ///
+  /// Returns a Stream of [DspyStreamEvent] that emits:
+  /// - status: Status messages (thinking, calling tool, etc.)
+  /// - tool_call: When agent calls a tool
+  /// - tool_result: Results from tool execution
+  /// - step: Complete reasoning steps
+  /// - error: If something goes wrong
+  /// - done: Final result with answer
+  ///
+  /// Example usage:
+  /// ```dart
+  /// await for (final event in client.streamAgent('Search for X')) {
+  ///   if (event.type == DspyStreamEventType.status) {
+  ///     print('Status: ${event.statusMessage}');
+  ///   } else if (event.isDone) {
+  ///     print('Done: ${event.answer}');
+  ///   }
+  /// }
+  /// ```
+  Stream<DspyStreamEvent> streamAgent(
+    String task, {
+    List<Map<String, dynamic>>? tools,
+    int maxIterations = 5,
+    String? model,
+    String? agentId,
+    String? conversationId,
+    String? flutterCallbackUrl,
+  }) async* {
+    final uri = Uri.parse('$baseUrl/agent/stream');
+
+    final body = {
+      'task': task,
+      if (tools != null) 'tools': tools,
+      'max_iterations': maxIterations,
+      if (model != null) 'model': model,
+      if (agentId != null) 'agent_id': agentId,
+      if (conversationId != null) 'conversation_id': conversationId,
+      if (flutterCallbackUrl != null) 'flutter_callback_url': flutterCallbackUrl,
+    };
+
+    try {
+      final request = http.Request('POST', uri);
+      request.headers['Content-Type'] = 'application/json';
+      request.headers['Accept'] = 'text/event-stream';
+      request.body = jsonEncode(body);
+
+      final streamedResponse = await _client.send(request);
+
+      if (streamedResponse.statusCode != 200) {
+        throw DspyException(
+          'Stream request failed',
+          statusCode: streamedResponse.statusCode,
+        );
+      }
+
+      // Parse SSE stream
+      String buffer = '';
+      await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
+        buffer += chunk;
+
+        // Process complete events (ending with double newline)
+        while (buffer.contains('\n\n')) {
+          final eventEnd = buffer.indexOf('\n\n');
+          final eventData = buffer.substring(0, eventEnd);
+          buffer = buffer.substring(eventEnd + 2);
+
+          // Parse SSE format: "data: {...}"
+          for (final line in eventData.split('\n')) {
+            if (line.startsWith('data: ')) {
+              final jsonStr = line.substring(6); // Remove "data: " prefix
+              try {
+                final json = jsonDecode(jsonStr) as Map<String, dynamic>;
+                yield DspyStreamEvent.fromJson(json);
+              } catch (e) {
+                // Skip malformed JSON
+                continue;
+              }
+            }
+          }
+        }
+      }
+    } on TimeoutException {
+      yield DspyStreamEvent(
+        type: DspyStreamEventType.error,
+        data: {'error': 'Stream timed out'},
+        timestamp: DateTime.now(),
+      );
+    } catch (e) {
+      if (e is DspyException) {
+        yield DspyStreamEvent(
+          type: DspyStreamEventType.error,
+          data: {'error': e.message},
+          timestamp: DateTime.now(),
+        );
+      } else {
+        yield DspyStreamEvent(
+          type: DspyStreamEventType.error,
+          data: {'error': 'Network error: $e'},
+          timestamp: DateTime.now(),
+        );
+      }
+    }
   }
 
   // ============== Reasoning ==============

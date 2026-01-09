@@ -35,6 +35,7 @@ import '../widgets/artifacts/artifact_workspace.dart';
 import '../components/model_warmup_status_indicator.dart';
 import '../../../../core/services/mcp_process_manager.dart';
 import '../../../../core/models/mcp_server_process.dart' as mcp_models;
+import '../../../../core/services/mcp_server_execution_service.dart';
 
 /// Chat screen that matches the screenshot with collapsible sidebar and MCP servers
 class ChatScreen extends ConsumerStatefulWidget {
@@ -493,7 +494,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
        
        // Dropdown
        DropdownButtonFormField<String>(
-         value: selectedModel?.id,
+         initialValue: selectedModel?.id,
          decoration: InputDecoration(
            contentPadding: const EdgeInsets.symmetric(
              horizontal: SpacingTokens.sm,
@@ -534,7 +535,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
          isExpanded: true,
          items: models.map((model) => DropdownMenuItem<String>(
            value: model.id,
-           child: Container(
+           child: SizedBox(
              height: 56, // Increased height to prevent cramping
              child: Row(
                children: [
@@ -1565,7 +1566,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
    // For now, show MCP integration for all conversations
    return Consumer(
      builder: (context, ref, child) {
-       return MCPChatIntegration(currentAgent: null);
+       return const MCPChatIntegration(currentAgent: null);
      },
    );
  }
@@ -1695,7 +1696,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
        // Show error if no model is configured
        ScaffoldMessenger.of(context).showSnackBar(
          SnackBar(
-           content: Text('Please configure at least one AI model in Settings to start chatting'),
+           content: const Text('Please configure at least one AI model in Settings to start chatting'),
            backgroundColor: ThemeColors(context).warning,
            action: SnackBarAction(
              label: 'Settings',
@@ -1814,6 +1815,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (mcpServers.isNotEmpty) {
       AppLogger.info('Checking MCP server health for ${mcpServers.length} servers', component: 'Chat.MCP');
       final mcpExecutionService = ref.read(mcpServerExecutionServiceProvider);
+      final mcpSettingsService = ref.read(mcpSettingsServiceProvider);
 
       for (final server in mcpServers) {
         final serverId = server is Map ? server['id'] as String? : server.toString();
@@ -1826,8 +1828,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // Server not running, start it
           AppLogger.info('Starting MCP server: $serverId', component: 'Chat.MCP');
           try {
-            await mcpExecutionService.startMCPServer(serverId);
-            AppLogger.info('MCP server started successfully: $serverId', component: 'Chat.MCP');
+            final serverConfig = mcpSettingsService.getMCPServer(serverId);
+            if (serverConfig != null) {
+              await mcpExecutionService.startMCPServer(
+                serverConfig,
+                serverConfig.env ?? {},
+              );
+              AppLogger.info('MCP server started successfully: $serverId', component: 'Chat.MCP');
+            } else {
+              AppLogger.warning('MCP server config not found: $serverId', component: 'Chat.MCP');
+            }
           } catch (e) {
             AppLogger.error('Failed to start MCP server: $serverId', component: 'Chat.MCP', error: e);
             // Continue with other servers even if one fails

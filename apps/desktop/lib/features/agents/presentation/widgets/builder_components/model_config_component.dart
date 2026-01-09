@@ -351,7 +351,7 @@ class ModelConfigComponent extends ConsumerWidget {
     final models = _getModelsForProvider(builderState.modelProvider);
 
     return DropdownButtonFormField<String>(
-      value: models.contains(builderState.modelName) ? builderState.modelName : models.first,
+      initialValue: models.contains(builderState.modelName) ? builderState.modelName : models.first,
       decoration: InputDecoration(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(BorderRadiusTokens.md),

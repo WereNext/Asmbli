@@ -47,13 +47,69 @@ class ChatScreenWithContextual extends ConsumerStatefulWidget {
 
 class _ChatScreenWithContextualState extends ConsumerState<ChatScreenWithContextual> {
  final TextEditingController messageController = TextEditingController();
+
+ /// Whether we're currently initializing an agent chat session
+ bool _isInitializingAgentChat = false;
  
  @override
  void initState() {
- super.initState();
- _initializeServices();
+   super.initState();
+   _initializeServices();
+   _loadRecentConversationsIntoTabs();
+
+   // Check if an agent was requested via URL parameter
+   if (widget.agentId != null) {
+     _isInitializingAgentChat = true;
+     _initializeAgentChat();
+   }
  }
- 
+
+ /// Load recent conversations into the tab bar on initialization
+ Future<void> _loadRecentConversationsIntoTabs() async {
+   // Wait a frame for providers to be available
+   await Future.delayed(const Duration(milliseconds: 100));
+   if (!mounted) return;
+
+   try {
+     // Get recent conversations from the provider
+     final conversationsAsync = ref.read(conversationsProvider);
+     final conversations = conversationsAsync.valueOrNull;
+
+     if (conversations == null || conversations.isEmpty) {
+       debugPrint('📋 No recent conversations to load into tabs');
+       return;
+     }
+
+     // Get existing open tabs to avoid duplicates
+     final existingTabs = ref.read(openConversationTabsProvider);
+     final tabNotifier = ref.read(openConversationTabsProvider.notifier);
+
+     // Load the most recent conversations (up to 5) that aren't already open
+     final recentToLoad = conversations
+         .where((c) => !existingTabs.contains(c.id))
+         .take(5)
+         .toList();
+
+     for (final conversation in recentToLoad) {
+       tabNotifier.openTab(conversation.id);
+     }
+
+     // Set the first conversation as active if none is selected
+     final activeTab = ref.read(activeConversationTabProvider);
+     final selectedId = ref.read(selectedConversationIdProvider);
+
+     if (activeTab == null && selectedId == null && conversations.isNotEmpty) {
+       final firstConv = conversations.first;
+       ref.read(activeConversationTabProvider.notifier).state = firstConv.id;
+       ref.read(selectedConversationIdProvider.notifier).state = firstConv.id;
+     }
+
+     debugPrint('📋 Loaded ${recentToLoad.length} recent conversations into tabs');
+   } catch (e) {
+     debugPrint('❌ Failed to load recent conversations: $e');
+   }
+ }
+
  Future<void> _initializeServices() async {
  try {
  // Services are initialized via Riverpod providers
@@ -67,6 +123,109 @@ class _ChatScreenWithContextualState extends ConsumerState<ChatScreenWithContext
  } catch (e) {
  print('Service initialization failed: $e');
  }
+ }
+
+ /// Initialize a chat session with a specific agent
+ Future<void> _initializeAgentChat() async {
+   final agentId = widget.agentId;
+   if (agentId == null) return;
+
+   try {
+     // Wait a frame for providers to be available
+     await Future.delayed(const Duration(milliseconds: 100));
+     if (!mounted) return;
+
+     // Get the agent from the provider
+     final agentsAsync = ref.read(agentsProvider);
+     final agents = agentsAsync.valueOrNull;
+     if (agents == null || agents.isEmpty) {
+       debugPrint('⚠️ No agents loaded yet, waiting...');
+       // Try again after agents load
+       Future.delayed(const Duration(milliseconds: 500), () {
+         if (mounted) _initializeAgentChat();
+       });
+       return;
+     }
+
+     // Find the requested agent
+     final agent = agents.where((a) => a.id == agentId).firstOrNull;
+     if (agent == null) {
+       debugPrint('⚠️ Agent not found: $agentId');
+       if (mounted) {
+         setState(() => _isInitializingAgentChat = false);
+       }
+       return;
+     }
+
+     debugPrint('🤖 Initializing chat with agent: ${agent.name}');
+
+     // Create a new agent conversation using the existing provider
+     final createAgentConversation = ref.read(createAgentConversationProvider);
+
+     // Get agent configuration
+     final mcpServersRaw = agent.configuration['mcpServers'];
+     final mcpServers = mcpServersRaw is List
+         ? List<String>.from(mcpServersRaw)
+         : <String>[];
+
+     final mcpServerConfigsRaw = agent.configuration['mcpServerConfigs'];
+     final mcpServerConfigs = mcpServerConfigsRaw is Map
+         ? Map<String, dynamic>.from(mcpServerConfigsRaw)
+         : <String, dynamic>{};
+
+     final contextDocsRaw = agent.configuration['contextDocuments'];
+     final contextDocuments = contextDocsRaw is List
+         ? List<String>.from(contextDocsRaw)
+         : <String>[];
+
+     // Get the default model for the API provider
+     final defaultModel = ref.read(defaultModelConfigProvider);
+     final modelProvider = defaultModel?.name ?? 'Local Model';
+
+     // Create the conversation with the agent's name as title
+     final conversation = await createAgentConversation(
+       agentId: agent.id,
+       agentName: agent.name,
+       systemPrompt: agent.configuration['systemPrompt']?.toString() ??
+         'You are a helpful AI assistant named ${agent.name}. ${agent.description}',
+       apiProvider: modelProvider,
+       mcpServers: mcpServers,
+       mcpServerConfigs: mcpServerConfigs,
+       contextDocuments: contextDocuments,
+     );
+
+     if (!mounted) return;
+
+     // Select the new conversation
+     ref.read(selectedConversationIdProvider.notifier).state = conversation.id;
+
+     // Add to tab bar so it shows in the chat header
+     ref.read(openConversationTabsProvider.notifier).openTab(conversation.id);
+     ref.read(activeConversationTabProvider.notifier).state = conversation.id;
+
+     // Refresh conversations list
+     ref.invalidate(conversationsProvider);
+
+     debugPrint('✅ Created agent chat: ${conversation.title} (${conversation.id})');
+
+     // Clear loading state and show notification
+     if (mounted) {
+       setState(() => _isInitializingAgentChat = false);
+       FloatingNotification.success(
+         context,
+         'Started chat with ${agent.name}',
+       );
+     }
+   } catch (e) {
+     debugPrint('❌ Failed to initialize agent chat: $e');
+     if (mounted) {
+       setState(() => _isInitializingAgentChat = false);
+       FloatingNotification.error(
+         context,
+         'Failed to start chat with agent',
+       );
+     }
+   }
  }
 
  void _setDefaultModel() {
@@ -118,7 +277,7 @@ class _ChatScreenWithContextualState extends ConsumerState<ChatScreenWithContext
        Future.microtask(() {
          if (mounted && llamaModel != null) {
            ref.read(selectedModelProvider.notifier).state = llamaModel;
-           debugPrint('✅ Set default model to: ${llamaModel!.name} (ID: ${llamaModel!.id})');
+           debugPrint('✅ Set default model to: ${llamaModel.name} (ID: ${llamaModel.id})');
          }
        });
      } catch (e) {
@@ -256,7 +415,7 @@ class _ChatScreenWithContextualState extends ConsumerState<ChatScreenWithContext
          mainAxisSize: MainAxisSize.min,
          children: [
            Container(
-             padding: EdgeInsets.symmetric(
+             padding: const EdgeInsets.symmetric(
                horizontal: SpacingTokens.sm,
                vertical: SpacingTokens.xxs,
              ),
@@ -883,6 +1042,71 @@ class _ChatScreenWithContextualState extends ConsumerState<ChatScreenWithContext
  );
  }
 
+ /// Loading state shown while initializing an agent chat session
+ Widget _buildAgentInitializingState(BuildContext context) {
+   final colors = ThemeColors(context);
+
+   return Center(
+     child: Container(
+       constraints: const BoxConstraints(maxWidth: 400),
+       padding: const EdgeInsets.all(SpacingTokens.xxl),
+       child: Column(
+         mainAxisAlignment: MainAxisAlignment.center,
+         children: [
+           // Animated loading icon
+           Container(
+             width: 80,
+             height: 80,
+             decoration: BoxDecoration(
+               gradient: LinearGradient(
+                 begin: Alignment.topLeft,
+                 end: Alignment.bottomRight,
+                 colors: [
+                   colors.primary.withValues(alpha: 0.15),
+                   colors.accent.withValues(alpha: 0.15),
+                 ],
+               ),
+               borderRadius: BorderRadius.circular(20),
+             ),
+             child: Center(
+               child: SizedBox(
+                 width: 32,
+                 height: 32,
+                 child: CircularProgressIndicator(
+                   strokeWidth: 3,
+                   valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
+                 ),
+               ),
+             ),
+           ),
+
+           const SizedBox(height: SpacingTokens.xl),
+
+           Text(
+             'Starting Agent...',
+             style: GoogleFonts.fustat(
+               fontWeight: FontWeight.w600,
+               fontSize: 20,
+               color: colors.onSurface,
+             ),
+           ),
+
+           const SizedBox(height: SpacingTokens.md),
+
+           Text(
+             'Preparing your chat session',
+             style: GoogleFonts.fustat(
+               color: colors.onSurfaceVariant,
+               height: 1.5,
+             ),
+             textAlign: TextAlign.center,
+           ),
+         ],
+       ),
+     ),
+   );
+ }
+
  /// Simple "ready to chat" state for when a conversation is already open but has no messages
  /// This is different from _buildEmptyConversationState which shows the full type selector
  Widget _buildReadyToChatState(BuildContext context) {
@@ -1066,10 +1290,15 @@ class _ChatScreenWithContextualState extends ConsumerState<ChatScreenWithContext
  Widget _buildMessagesArea(BuildContext context) {
  final selectedConversationId = ref.watch(selectedConversationIdProvider);
  
- if (selectedConversationId == null) {
- return _buildEmptyState(context);
+ // Show loading state while initializing agent chat
+ if (_isInitializingAgentChat && selectedConversationId == null) {
+   return _buildAgentInitializingState(context);
  }
- 
+
+ if (selectedConversationId == null) {
+   return _buildEmptyState(context);
+ }
+
  return _buildMessagesList(context, selectedConversationId);
  }
  

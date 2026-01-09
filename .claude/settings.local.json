@@ -58,7 +58,10 @@
       "Bash(where uvx)",
       "Bash(dart analyze:*)",
       "Bash(flutter packages pub run build_runner build:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "WebFetch(domain:dspy.ai)",
+      "Bash(taskkill:*)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": [],

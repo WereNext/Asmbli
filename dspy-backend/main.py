@@ -22,28 +22,36 @@ from src.api.server import app
 def main():
     """Run the server"""
     print("=" * 60)
-    print("🚀 Asmbli DSPy Backend")
+    print("[*] Asmbli DSPy Backend")
     print("=" * 60)
-    print(f"📍 Host: {settings.host}")
-    print(f"🔌 Port: {settings.port}")
-    print(f"🤖 Default Model: {settings.default_model}")
-    print(f"🐛 Debug: {settings.debug}")
+    print(f"[>] Host: {settings.host}")
+    print(f"[>] Port: {settings.port}")
+    print(f"[>] Default Model: {settings.default_model}")
+    print(f"[>] Debug: {settings.debug}")
     print("=" * 60)
 
-    # Validate config before starting
-    valid, errors = settings.validate_config()
+    # Check if we have any API keys for LLM features
+    has_llm = settings.openai_api_key or settings.anthropic_api_key
+
+    # Validate config - allow graph-only mode without API keys
+    valid, messages = settings.validate_config(require_llm=has_llm)
     if not valid:
-        print("❌ Configuration errors:")
-        for error in errors:
-            print(f"   - {error}")
-        print("\n📝 Please check your .env file")
+        print("[!] Configuration errors:")
+        for msg in messages:
+            print(f"   - {msg}")
+        print("\n[i] Please check your .env file")
         return
 
-    print("✅ Configuration valid")
-    print(f"📚 Available models: {settings.get_available_models()}")
+    if messages:  # Warnings
+        print("[!] Configuration warnings:")
+        for msg in messages:
+            print(f"   - {msg}")
+
+    print("[+] Configuration valid")
+    print(f"[i] Available models: {settings.get_available_models()}")
     print("=" * 60)
-    print(f"\n🌐 API docs available at: http://{settings.host}:{settings.port}/docs")
-    print(f"❤️  Health check at: http://{settings.host}:{settings.port}/health\n")
+    print(f"\n[>] API docs available at: http://{settings.host}:{settings.port}/docs")
+    print(f"[>] Health check at: http://{settings.host}:{settings.port}/health\n")
 
     uvicorn.run(
         "src.api.server:app",

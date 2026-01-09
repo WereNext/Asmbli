@@ -101,23 +101,32 @@ class Settings(BaseSettings):
             ])
         return models
 
-    def validate_config(self) -> tuple[bool, list[str]]:
-        """Validate configuration and return status with any errors"""
+    def validate_config(self, require_llm: bool = True) -> tuple[bool, list[str]]:
+        """Validate configuration and return status with any errors
+
+        Args:
+            require_llm: If True, require at least one API key. Set False for graph-only mode.
+        """
         errors = []
+        warnings = []
 
         if not self.openai_api_key and not self.anthropic_api_key:
-            errors.append("At least one API key (OPENAI_API_KEY or ANTHROPIC_API_KEY) is required")
+            if require_llm:
+                errors.append("At least one API key (OPENAI_API_KEY or ANTHROPIC_API_KEY) is required")
+            else:
+                warnings.append("No API keys configured - LLM features disabled, graph-only mode active")
 
-        # Validate default model matches available keys
-        if self.default_model.startswith("openai/") and not self.openai_api_key:
-            errors.append(f"Default model {self.default_model} requires OPENAI_API_KEY")
-        if self.default_model.startswith("anthropic/") and not self.anthropic_api_key:
-            errors.append(f"Default model {self.default_model} requires ANTHROPIC_API_KEY")
+        # Validate default model matches available keys (only if LLM required)
+        if require_llm:
+            if self.default_model.startswith("openai/") and not self.openai_api_key:
+                errors.append(f"Default model {self.default_model} requires OPENAI_API_KEY")
+            if self.default_model.startswith("anthropic/") and not self.anthropic_api_key:
+                errors.append(f"Default model {self.default_model} requires ANTHROPIC_API_KEY")
 
         # Ensure data directory exists
         Path(self.chroma_persist_dir).mkdir(parents=True, exist_ok=True)
 
-        return len(errors) == 0, errors
+        return len(errors) == 0, errors + warnings
 
 
 # Global settings instance
