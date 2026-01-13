@@ -60,6 +60,9 @@ import 'core/services/desktop/desktop_agent_service.dart';
 import 'core/services/desktop/desktop_conversation_service.dart';
 import 'features/setup/presentation/screens/first_run_setup_screen.dart';
 
+// MVP Vertical Slice - streamlined experience
+import 'features/mvp/mvp.dart';
+
 void main() async {
   // Set up error zone for the entire app
   runZonedGuarded(() async {
@@ -338,6 +341,23 @@ final _router = GoRouter(
  GoRoute(
  path: '/onboarding',
  builder: (context, state) => const OnboardingScreen(),
+ ),
+ // MVP Vertical Slice Routes
+ GoRoute(
+ path: '/mvp',
+ builder: (context, state) => const MvpWelcomeScreen(),
+ ),
+ GoRoute(
+ path: '/mvp/setup',
+ builder: (context, state) => const MvpSetupScreen(),
+ ),
+ GoRoute(
+ path: '/mvp/chat',
+ builder: (context, state) => const MvpChatScreen(),
+ ),
+ GoRoute(
+ path: '/mvp/settings',
+ builder: (context, state) => const MvpSettingsScreen(),
  ),
  GoRoute(
  path: AppRoutes.home,
