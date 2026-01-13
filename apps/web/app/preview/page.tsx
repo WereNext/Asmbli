@@ -37,7 +37,7 @@ const mvpDownloads: DownloadInfo[] = [
   {
     platform: 'macOS',
     version: 'MVP Preview',
-    size: '~25MB',
+    size: '~20MB',
     filename: 'Asmbli-MVP-Preview-macOS.zip',
     downloadUrl: '/downloads/macos/mvp-preview/Asmbli-MVP-Preview-macOS.zip',
     features: [
