@@ -400,7 +400,7 @@ class _EnhancedModelConfigComponentState extends ConsumerState<EnhancedModelConf
           
           // Model selection dropdown
           DropdownButtonFormField<String>(
-            initialValue: builderState.selectedModelId,
+            value: builderState.selectedModelId,
             decoration: InputDecoration(
               labelText: 'Model',
               border: OutlineInputBorder(

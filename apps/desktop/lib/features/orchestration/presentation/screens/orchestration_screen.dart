@@ -670,7 +670,7 @@ class _OrchestrationScreenState extends ConsumerState<OrchestrationScreen> {
     return SizedBox(
       width: 200,
       child: DropdownButtonFormField<String>(
-        initialValue: _selectedModelId,
+        value: _selectedModelId,
         decoration: InputDecoration(
           labelText: 'Model',
           border: OutlineInputBorder(

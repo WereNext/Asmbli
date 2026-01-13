@@ -461,7 +461,7 @@ class _DspyAgentWizardScreenState extends ConsumerState<DspyAgentWizardScreen> {
               Container(
                 constraints: const BoxConstraints(maxWidth: 250),
                 child: DropdownButtonFormField<String>(
-                  initialValue: _selectedTemplateId,
+                  value: _selectedTemplateId,
                   decoration: InputDecoration(
                     hintText: 'Quick select...',
                     contentPadding: const EdgeInsets.symmetric(

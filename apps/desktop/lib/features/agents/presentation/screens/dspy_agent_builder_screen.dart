@@ -328,7 +328,7 @@ class _DspyAgentBuilderScreenState extends ConsumerState<DspyAgentBuilderScreen>
           Text('Category', style: TextStyles.labelMedium.copyWith(color: colors.onSurface)),
           const SizedBox(height: SpacingTokens.sm),
           DropdownButtonFormField<String>(
-            initialValue: state.category,
+            value: state.category,
             decoration: InputDecoration(
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(BorderRadiusTokens.md)),
               filled: true,

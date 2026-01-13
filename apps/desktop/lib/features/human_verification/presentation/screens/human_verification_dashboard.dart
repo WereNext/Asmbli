@@ -532,7 +532,12 @@ class _HumanVerificationDashboardState extends ConsumerState<HumanVerificationDa
             child: Switch(
               value: rule.enabled,
               onChanged: (v) => ref.read(verificationRulesProvider.notifier).toggleRule(rule.id),
-              activeThumbColor: colors.primary,
+              thumbColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return colors.primary;
+                }
+                return null;
+              }),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),

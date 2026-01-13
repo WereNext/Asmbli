@@ -1462,7 +1462,7 @@ Focus on concrete actions and specific implementation details.''';
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                initialValue: _contextType,
+                value: _contextType,
                 decoration: const InputDecoration(
                   labelText: 'Context Type',
                   border: OutlineInputBorder(),
@@ -1836,7 +1836,7 @@ Focus on concrete actions and specific implementation details.''';
                   ),
                   const SizedBox(height: SpacingTokens.sm),
                   DropdownButtonFormField<String>(
-                    initialValue: _contextType,
+                    value: _contextType,
                     decoration: InputDecoration(
                       labelText: 'Context Type',
                       border: OutlineInputBorder(

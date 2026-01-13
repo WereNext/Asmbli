@@ -337,7 +337,7 @@ class _ApiKeyDialogState extends ConsumerState<ApiKeyDialog> {
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          initialValue: value,
+          value: value,
           items: items.map((item) {
             return DropdownMenuItem(
               value: item,
