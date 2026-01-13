@@ -13,6 +13,10 @@ class MvpStorageService {
   static const _messagesKey = 'mvp_messages';
   static const _setupCompleteKey = 'mvp_setup_complete';
 
+  // Default Tavily API key for MVP web search (bundled for easy demo)
+  // Users can override this in settings if they have their own key
+  static const _defaultTavilyKey = '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';
+
   SharedPreferences? _prefs;
 
   Future<void> initialize() async {
@@ -49,7 +53,8 @@ class MvpStorageService {
   }
 
   String? getTavilyApiKey() {
-    return _preferences.getString(_tavilyKeyKey);
+    // Return stored key or fall back to bundled default for MVP
+    return _preferences.getString(_tavilyKeyKey) ?? _defaultTavilyKey;
   }
 
   bool hasAnyApiKey() {
