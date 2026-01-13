@@ -1,0 +1,114 @@
+name: MVP Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version label (e.g., preview-1.0)'
+        required: true
+        default: 'preview'
+
+permissions:
+  contents: write
+
+jobs:
+  build-mvp:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: macos
+            artifact-name: Asmbli-MVP-Preview-macOS
+            build-cmd: flutter build macos --release -t lib/main_mvp.dart
+            asset-path: build/macos/Build/Products/Release
+          - os: windows-latest
+            platform: windows
+            artifact-name: Asmbli-MVP-Preview-Windows
+            build-cmd: flutter build windows --release -t lib/main_mvp.dart
+            asset-path: build/windows/x64/runner/Release
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: |
+        cd apps/desktop
+        flutter pub get
+
+    - name: Build MVP application
+      run: |
+        cd apps/desktop
+        ${{ matrix.build-cmd }}
+
+    - name: Package macOS release
+      if: matrix.platform == 'macos'
+      run: |
+        cd apps/desktop/${{ matrix.asset-path }}
+        # Create a proper .app bundle zip
+        zip -r ../../../../../${{ matrix.artifact-name }}.zip *.app
+
+    - name: Package Windows release
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      run: |
+        cd apps/desktop/${{ matrix.asset-path }}
+        Compress-Archive -Path * -DestinationPath ../../../../../${{ matrix.artifact-name }}.zip
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact-name }}
+        path: ${{ matrix.artifact-name }}.zip
+        retention-days: 30
+
+  create-release:
+    needs: build-mvp
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: mvp-${{ github.event.inputs.version }}
+        name: MVP Preview ${{ github.event.inputs.version }}
+        draft: true
+        prerelease: true
+        files: |
+          artifacts/Asmbli-MVP-Preview-Windows/Asmbli-MVP-Preview-Windows.zip
+          artifacts/Asmbli-MVP-Preview-macOS/Asmbli-MVP-Preview-macOS.zip
+        body: |
+          ## MVP Preview Build
+
+          This is a preview build of Asmbli MVP for early testers.
+
+          ### Downloads
+          - **Windows**: Asmbli-MVP-Preview-Windows.zip
+          - **macOS**: Asmbli-MVP-Preview-macOS.zip
+
+          ### Features
+          - Streamlined chat interface
+          - OpenAI, Anthropic & Ollama support
+          - Web search integration
+          - 6 beautiful color themes
+          - Local-first - your data stays private
+          - Customizable system prompts
+
+          ### Quick Start
+          1. Extract the ZIP file
+          2. Run the application
+          3. Add your API key (or use local Ollama)
+          4. Start chatting!
+
+          ---
+          *Preview build - not for production use*

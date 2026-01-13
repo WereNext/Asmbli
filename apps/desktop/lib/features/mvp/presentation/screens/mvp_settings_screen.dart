@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/design_system.dart';
+import '../../../../core/theme/color_schemes.dart';
+import '../../../../main_mvp.dart';
 import '../../models/mvp_settings.dart';
+import '../../services/mvp_llm_service.dart';
 import '../../services/mvp_storage_service.dart';
 
 /// MVP Settings Screen - Customize agent behavior
-class MvpSettingsScreen extends StatefulWidget {
+class MvpSettingsScreen extends ConsumerStatefulWidget {
   const MvpSettingsScreen({super.key});
 
   @override
-  State<MvpSettingsScreen> createState() => _MvpSettingsScreenState();
+  ConsumerState<MvpSettingsScreen> createState() => _MvpSettingsScreenState();
 }
 
-class _MvpSettingsScreenState extends State<MvpSettingsScreen> {
+class _MvpSettingsScreenState extends ConsumerState<MvpSettingsScreen> {
   final _storage = MvpStorageService();
   final _agentNameController = TextEditingController();
   final _systemPromptController = TextEditingController();
@@ -20,6 +24,11 @@ class _MvpSettingsScreenState extends State<MvpSettingsScreen> {
   MvpSettings _settings = MvpSettings.defaults();
   bool _initialized = false;
   bool _hasChanges = false;
+  bool _hasOpenAiKey = false;
+  bool _hasAnthropicKey = false;
+  bool _ollamaEnabled = false;
+  bool _ollamaRunning = false;
+  List<String> _ollamaModels = [];
 
   @override
   void initState() {
@@ -33,6 +42,20 @@ class _MvpSettingsScreenState extends State<MvpSettingsScreen> {
 
     _agentNameController.text = _settings.agentName;
     _systemPromptController.text = _settings.systemPrompt;
+
+    // Load API key availability from secure storage (async)
+    final openAiKey = await _storage.getOpenAiApiKey();
+    final anthropicKey = await _storage.getAnthropicApiKey();
+    _hasOpenAiKey = openAiKey?.isNotEmpty ?? false;
+    _hasAnthropicKey = anthropicKey?.isNotEmpty ?? false;
+
+    // Check Ollama status
+    _ollamaEnabled = _storage.isOllamaEnabled();
+    _ollamaRunning = await MvpLlmService.checkOllamaRunning();
+    if (_ollamaRunning) {
+      final llm = MvpLlmService(ollamaEnabled: true);
+      _ollamaModels = await llm.getOllamaModels();
+    }
 
     setState(() => _initialized = true);
   }
@@ -259,21 +282,27 @@ class _MvpSettingsScreenState extends State<MvpSettingsScreen> {
                                 value: _settings.selectedProvider,
                                 onChanged: (provider) {
                                   setState(() {
+                                    String defaultModel;
+                                    if (provider == 'openai') {
+                                      defaultModel = 'gpt-4o';
+                                    } else if (provider == 'anthropic') {
+                                      defaultModel = 'claude-3-5-sonnet-20241022';
+                                    } else {
+                                      // Ollama - use first available model or default
+                                      defaultModel = _ollamaModels.isNotEmpty
+                                          ? _ollamaModels.first
+                                          : 'llama3.2';
+                                    }
                                     _settings = _settings.copyWith(
                                       selectedProvider: provider,
-                                      selectedModel: provider == 'openai'
-                                          ? 'gpt-4o'
-                                          : 'claude-3-5-sonnet-20241022',
+                                      selectedModel: defaultModel,
                                     );
                                     _hasChanges = true;
                                   });
                                 },
-                                hasOpenAi:
-                                    _storage.getOpenAiApiKey()?.isNotEmpty ??
-                                        false,
-                                hasAnthropic:
-                                    _storage.getAnthropicApiKey()?.isNotEmpty ??
-                                        false,
+                                hasOpenAi: _hasOpenAiKey,
+                                hasAnthropic: _hasAnthropicKey,
+                                hasOllama: _ollamaEnabled && _ollamaRunning,
                               ),
                             ),
                             const Divider(height: SpacingTokens.sectionSpacing),
@@ -282,6 +311,7 @@ class _MvpSettingsScreenState extends State<MvpSettingsScreen> {
                               child: _ModelSelector(
                                 provider: _settings.selectedProvider,
                                 value: _settings.selectedModel,
+                                ollamaModels: _ollamaModels,
                                 onChanged: (model) {
                                   setState(() {
                                     _settings =
@@ -334,6 +364,65 @@ class _MvpSettingsScreenState extends State<MvpSettingsScreen> {
                                         webSearchEnabled: value);
                                     _hasChanges = true;
                                   });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: SpacingTokens.sectionSpacing),
+
+                        // Ollama section
+                        _SectionHeader(title: 'Local AI (Ollama)'),
+                        const SizedBox(height: SpacingTokens.componentSpacing),
+
+                        _SettingsCard(
+                          children: [
+                            _SettingsField(
+                              label: 'Enable Ollama',
+                              description: _ollamaRunning
+                                  ? 'Ollama is running (${_ollamaModels.length} models)'
+                                  : 'Ollama not detected. Install from ollama.com',
+                              child: Switch(
+                                value: _ollamaEnabled,
+                                onChanged: _ollamaRunning
+                                    ? (value) async {
+                                        await _storage.setOllamaEnabled(value);
+                                        setState(() {
+                                          _ollamaEnabled = value;
+                                          _hasChanges = true;
+                                        });
+                                      }
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: SpacingTokens.sectionSpacing),
+
+                        // Appearance section
+                        _SectionHeader(title: 'Appearance'),
+                        const SizedBox(height: SpacingTokens.componentSpacing),
+
+                        _SettingsCard(
+                          children: [
+                            _SettingsField(
+                              label: 'Theme Mode',
+                              child: _ThemeModeSelector(
+                                value: ref.watch(mvpThemeProvider).mode,
+                                onChanged: (mode) {
+                                  ref.read(mvpThemeProvider.notifier).setThemeMode(mode);
+                                },
+                              ),
+                            ),
+                            const Divider(height: SpacingTokens.sectionSpacing),
+                            _SettingsField(
+                              label: 'Color Scheme',
+                              child: _ColorSchemeSelector(
+                                value: ref.watch(mvpThemeProvider).colorScheme,
+                                onChanged: (scheme) {
+                                  ref.read(mvpThemeProvider.notifier).setColorScheme(scheme);
                                 },
                               ),
                             ),
@@ -513,36 +602,54 @@ class _ProviderSelector extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final bool hasOpenAi;
   final bool hasAnthropic;
+  final bool hasOllama;
 
   const _ProviderSelector({
     required this.value,
     required this.onChanged,
     required this.hasOpenAi,
     required this.hasAnthropic,
+    this.hasOllama = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = ThemeColors(context);
-
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _ProviderChip(
-            label: 'OpenAI',
-            isSelected: value == 'openai',
-            isAvailable: hasOpenAi,
-            onTap: hasOpenAi ? () => onChanged('openai') : null,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _ProviderChip(
+                label: 'OpenAI',
+                isSelected: value == 'openai',
+                isAvailable: hasOpenAi,
+                onTap: hasOpenAi ? () => onChanged('openai') : null,
+              ),
+            ),
+            const SizedBox(width: SpacingTokens.iconSpacing),
+            Expanded(
+              child: _ProviderChip(
+                label: 'Anthropic',
+                isSelected: value == 'anthropic',
+                isAvailable: hasAnthropic,
+                onTap: hasAnthropic ? () => onChanged('anthropic') : null,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: SpacingTokens.iconSpacing),
-        Expanded(
-          child: _ProviderChip(
-            label: 'Anthropic',
-            isSelected: value == 'anthropic',
-            isAvailable: hasAnthropic,
-            onTap: hasAnthropic ? () => onChanged('anthropic') : null,
-          ),
+        const SizedBox(height: SpacingTokens.iconSpacing),
+        Row(
+          children: [
+            Expanded(
+              child: _ProviderChip(
+                label: 'Ollama (Local)',
+                isSelected: value == 'ollama',
+                isAvailable: hasOllama,
+                onTap: hasOllama ? () => onChanged('ollama') : null,
+              ),
+            ),
+            const Spacer(),
+          ],
         ),
       ],
     );
@@ -624,24 +731,34 @@ class _ModelSelector extends StatelessWidget {
   final String provider;
   final String value;
   final ValueChanged<String> onChanged;
+  final List<String> ollamaModels;
 
   const _ModelSelector({
     required this.provider,
     required this.value,
     required this.onChanged,
+    this.ollamaModels = const [],
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = ThemeColors(context);
 
-    final models = provider == 'openai'
-        ? ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo']
-        : [
-            'claude-3-5-sonnet-20241022',
-            'claude-3-opus-20240229',
-            'claude-3-haiku-20240307'
-          ];
+    List<String> models;
+    if (provider == 'openai') {
+      models = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'];
+    } else if (provider == 'anthropic') {
+      models = [
+        'claude-3-5-sonnet-20241022',
+        'claude-3-opus-20240229',
+        'claude-3-haiku-20240307'
+      ];
+    } else {
+      // Ollama models
+      models = ollamaModels.isNotEmpty
+          ? ollamaModels
+          : ['llama3.2', 'llama3.1', 'mistral', 'codellama'];
+    }
 
     return DropdownButtonFormField<String>(
       value: models.contains(value) ? value : models.first,
@@ -669,6 +786,216 @@ class _ModelSelector extends StatelessWidget {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
           borderSide: BorderSide(color: colors.border),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeModeSelector extends StatelessWidget {
+  final ThemeMode value;
+  final ValueChanged<ThemeMode> onChanged;
+
+  const _ThemeModeSelector({
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ThemeModeChip(
+            label: 'Light',
+            icon: Icons.wb_sunny,
+            isSelected: value == ThemeMode.light,
+            onTap: () => onChanged(ThemeMode.light),
+          ),
+        ),
+        const SizedBox(width: SpacingTokens.iconSpacing),
+        Expanded(
+          child: _ThemeModeChip(
+            label: 'Dark',
+            icon: Icons.nightlight_round,
+            isSelected: value == ThemeMode.dark,
+            onTap: () => onChanged(ThemeMode.dark),
+          ),
+        ),
+        const SizedBox(width: SpacingTokens.iconSpacing),
+        Expanded(
+          child: _ThemeModeChip(
+            label: 'System',
+            icon: Icons.auto_mode,
+            isSelected: value == ThemeMode.system,
+            onTap: () => onChanged(ThemeMode.system),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ThemeModeChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeModeChip({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ThemeColors(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: SpacingTokens.iconSpacing,
+            vertical: SpacingTokens.iconSpacing,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? colors.primary.withValues(alpha: 0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+            border: Border.all(
+              color: isSelected ? colors.primary : colors.border,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? colors.primary : colors.onSurfaceVariant,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyles.caption.copyWith(
+                  color: isSelected ? colors.primary : colors.onSurface,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ColorSchemeSelector extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  const _ColorSchemeSelector({
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final schemes = AppColorSchemes.all;
+
+    return Wrap(
+      spacing: SpacingTokens.iconSpacing,
+      runSpacing: SpacingTokens.iconSpacing,
+      children: schemes.map((scheme) {
+        return _ColorSchemeChip(
+          name: scheme.name,
+          colors: scheme.colors,
+          isSelected: value == scheme.id,
+          onTap: () => onChanged(scheme.id),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _ColorSchemeChip extends StatelessWidget {
+  final String name;
+  final List<Color> colors;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ColorSchemeChip({
+    required this.name,
+    required this.colors,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeColors = ThemeColors(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+        child: Container(
+          padding: const EdgeInsets.all(SpacingTokens.iconSpacing),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? themeColors.primary.withValues(alpha: 0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+            border: Border.all(
+              color: isSelected ? themeColors.primary : themeColors.border,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Color preview circles
+              Row(
+                children: colors.map((color) {
+                  return Container(
+                    width: 16,
+                    height: 16,
+                    margin: const EdgeInsets.only(right: 2),
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: themeColors.border.withValues(alpha: 0.3),
+                        width: 0.5,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(width: SpacingTokens.iconSpacing),
+              Text(
+                name,
+                style: TextStyles.bodySmall.copyWith(
+                  color: isSelected ? themeColors.primary : themeColors.onSurface,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+              if (isSelected) ...[
+                const SizedBox(width: SpacingTokens.xs_precise),
+                Icon(
+                  Icons.check,
+                  size: 14,
+                  color: themeColors.primary,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

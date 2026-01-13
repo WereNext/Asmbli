@@ -18,6 +18,11 @@ export 'models/mvp_settings.dart';
 export 'services/mvp_llm_service.dart';
 export 'services/mvp_storage_service.dart';
 export 'services/mvp_web_search_service.dart';
+export 'services/mvp_secure_storage_service.dart';
+export 'services/mvp_rate_limiter.dart';
+
+// Proxy
+export 'proxy/mvp_proxy_server.dart';
 
 // Screens
 export 'presentation/screens/mvp_welcome_screen.dart';

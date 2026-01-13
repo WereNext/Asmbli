@@ -25,6 +25,8 @@ class _MvpSetupScreenState extends State<MvpSetupScreen> {
   String? _testResult;
   bool _testSuccess = false;
   bool _initialized = false;
+  bool _ollamaRunning = false;
+  List<String> _ollamaModels = [];
 
   @override
   void initState() {
@@ -35,9 +37,9 @@ class _MvpSetupScreenState extends State<MvpSetupScreen> {
   Future<void> _initialize() async {
     await _storage.initialize();
 
-    // Load existing keys if any
-    final openAi = _storage.getOpenAiApiKey();
-    final anthropic = _storage.getAnthropicApiKey();
+    // Load existing keys from secure storage (async)
+    final openAi = await _storage.getOpenAiApiKey();
+    final anthropic = await _storage.getAnthropicApiKey();
 
     if (openAi != null && openAi.isNotEmpty) {
       _openAiController.text = openAi;
@@ -47,6 +49,19 @@ class _MvpSetupScreenState extends State<MvpSetupScreen> {
       _anthropicController.text = anthropic;
       if (openAi == null || openAi.isEmpty) {
         _selectedProvider = 'anthropic';
+      }
+    }
+
+    // Check if Ollama is running
+    _ollamaRunning = await MvpLlmService.checkOllamaRunning();
+    if (_ollamaRunning) {
+      final llm = MvpLlmService(ollamaEnabled: true);
+      _ollamaModels = await llm.getOllamaModels();
+      // If no API keys but Ollama is available, default to it
+      if ((openAi == null || openAi.isEmpty) &&
+          (anthropic == null || anthropic.isEmpty) &&
+          _ollamaModels.isNotEmpty) {
+        _selectedProvider = 'ollama';
       }
     }
 
@@ -61,6 +76,24 @@ class _MvpSetupScreenState extends State<MvpSetupScreen> {
   }
 
   Future<void> _testConnection() async {
+    // Ollama doesn't need an API key
+    if (_selectedProvider == 'ollama') {
+      setState(() {
+        _isTesting = true;
+        _testResult = null;
+      });
+
+      final llmService = MvpLlmService(ollamaEnabled: true);
+      final result = await llmService.testConnection('ollama');
+
+      setState(() {
+        _isTesting = false;
+        _testResult = result.message;
+        _testSuccess = result.isSuccess;
+      });
+      return;
+    }
+
     final apiKey = _selectedProvider == 'openai'
         ? _openAiController.text.trim()
         : _anthropicController.text.trim();
@@ -104,12 +137,24 @@ class _MvpSetupScreenState extends State<MvpSetupScreen> {
         await _storage.saveAnthropicApiKey(_anthropicController.text.trim());
       }
 
+      // Determine default model based on provider
+      String defaultModel;
+      if (_selectedProvider == 'openai') {
+        defaultModel = 'gpt-4o';
+      } else if (_selectedProvider == 'anthropic') {
+        defaultModel = 'claude-3-5-sonnet-20241022';
+      } else {
+        // Ollama - use first available model
+        defaultModel = _ollamaModels.isNotEmpty ? _ollamaModels.first : 'llama3.2';
+        // Enable Ollama in storage
+        await _storage.setOllamaEnabled(true);
+      }
+
       // Update settings with selected provider
       final settings = _storage.getSettings();
       await _storage.saveSettings(settings.copyWith(
         selectedProvider: _selectedProvider,
-        selectedModel:
-            _selectedProvider == 'openai' ? 'gpt-4o' : 'claude-3-5-sonnet-20241022',
+        selectedModel: defaultModel,
       ));
 
       // Mark setup as complete
@@ -125,13 +170,23 @@ class _MvpSetupScreenState extends State<MvpSetupScreen> {
     }
   }
 
-  Future<void> _openApiKeyPage(String provider) async {
-    final url = provider == 'openai'
-        ? Uri.parse('https://platform.openai.com/api-keys')
-        : Uri.parse('https://console.anthropic.com/settings/keys');
-
+  Future<void> _openUrl(String urlString) async {
+    final url = Uri.parse(urlString);
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
+    }
+  }
+
+  String _getApiKeyUrl(String provider) {
+    switch (provider) {
+      case 'openai':
+        return 'https://platform.openai.com/api-keys';
+      case 'anthropic':
+        return 'https://console.anthropic.com/settings/keys';
+      case 'google':
+        return 'https://aistudio.google.com/app/apikey';
+      default:
+        return '';
     }
   }
 
@@ -221,12 +276,31 @@ class _MvpSetupScreenState extends State<MvpSetupScreen> {
 
                       const SizedBox(height: SpacingTokens.componentSpacing),
 
+                      // Ollama option
+                      _ProviderOption(
+                        title: 'Ollama (Local)',
+                        subtitle: _ollamaRunning
+                            ? (_ollamaModels.isNotEmpty
+                                ? '${_ollamaModels.length} models available - No API key needed'
+                                : 'Running - No API key needed')
+                            : 'Run AI locally on your machine - Free',
+                        isSelected: _selectedProvider == 'ollama',
+                        isAvailable: _ollamaRunning,
+                        onTap: () => setState(() => _selectedProvider = 'ollama'),
+                        actionLabel: _ollamaRunning ? null : 'Download Ollama',
+                        onActionTap: _ollamaRunning ? null : () => _openUrl('https://ollama.com/download'),
+                      ),
+
+                      const SizedBox(height: SpacingTokens.iconSpacing),
+
                       // OpenAI option
                       _ProviderOption(
                         title: 'OpenAI',
-                        subtitle: 'GPT-4o and other models',
+                        subtitle: 'GPT-4o, GPT-4 Turbo, and more',
                         isSelected: _selectedProvider == 'openai',
                         onTap: () => setState(() => _selectedProvider = 'openai'),
+                        actionLabel: 'Get API key',
+                        onActionTap: () => _openUrl('https://platform.openai.com/api-keys'),
                       ),
 
                       const SizedBox(height: SpacingTokens.iconSpacing),
@@ -234,55 +308,60 @@ class _MvpSetupScreenState extends State<MvpSetupScreen> {
                       // Anthropic option
                       _ProviderOption(
                         title: 'Anthropic',
-                        subtitle: 'Claude 3.5 Sonnet and other models',
+                        subtitle: 'Claude 3.5 Sonnet, Claude 3 Opus',
                         isSelected: _selectedProvider == 'anthropic',
                         onTap: () => setState(() => _selectedProvider = 'anthropic'),
+                        actionLabel: 'Get API key',
+                        onActionTap: () => _openUrl('https://console.anthropic.com/settings/keys'),
                       ),
 
                       const SizedBox(height: SpacingTokens.sectionSpacing),
 
-                      // API Key input
-                      Row(
-                        children: [
-                          Text(
-                            'API Key',
-                            style: TextStyles.sectionTitle.copyWith(
-                              color: colors.onSurface,
-                            ),
-                          ),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () => _openApiKeyPage(_selectedProvider),
-                            child: Text(
-                              'Get API key',
-                              style: TextStyles.bodySmall.copyWith(
-                                color: colors.primary,
+                      // API Key input (not shown for Ollama)
+                      if (_selectedProvider != 'ollama') ...[
+                        Row(
+                          children: [
+                            Text(
+                              'API Key',
+                              style: TextStyles.sectionTitle.copyWith(
+                                color: colors.onSurface,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: SpacingTokens.iconSpacing),
-
-                      if (_selectedProvider == 'openai')
-                        _ApiKeyField(
-                          controller: _openAiController,
-                          hint: 'sk-...',
-                          onChanged: (_) => setState(() {
-                            _testResult = null;
-                          }),
-                        )
-                      else
-                        _ApiKeyField(
-                          controller: _anthropicController,
-                          hint: 'sk-ant-...',
-                          onChanged: (_) => setState(() {
-                            _testResult = null;
-                          }),
+                            const Spacer(),
+                            TextButton.icon(
+                              onPressed: () => _openUrl(_getApiKeyUrl(_selectedProvider)),
+                              icon: Icon(Icons.open_in_new, size: 14, color: colors.primary),
+                              label: Text(
+                                'Get API key',
+                                style: TextStyles.bodySmall.copyWith(
+                                  color: colors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
 
-                      const SizedBox(height: SpacingTokens.componentSpacing),
+                        const SizedBox(height: SpacingTokens.iconSpacing),
+
+                        if (_selectedProvider == 'openai')
+                          _ApiKeyField(
+                            controller: _openAiController,
+                            hint: 'sk-...',
+                            onChanged: (_) => setState(() {
+                              _testResult = null;
+                            }),
+                          )
+                        else
+                          _ApiKeyField(
+                            controller: _anthropicController,
+                            hint: 'sk-ant-...',
+                            onChanged: (_) => setState(() {
+                              _testResult = null;
+                            }),
+                          ),
+
+                        const SizedBox(height: SpacingTokens.componentSpacing),
+                      ],
 
                       // Test connection button and result
                       Row(
@@ -363,23 +442,30 @@ class _ProviderOption extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool isSelected;
+  final bool isAvailable;
   final VoidCallback onTap;
+  final String? actionLabel;
+  final VoidCallback? onActionTap;
 
   const _ProviderOption({
     required this.title,
     required this.subtitle,
     required this.isSelected,
+    this.isAvailable = true,
     required this.onTap,
+    this.actionLabel,
+    this.onActionTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = ThemeColors(context);
+    final canSelect = isAvailable;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: canSelect ? onTap : null,
         borderRadius: BorderRadius.circular(BorderRadiusTokens.md),
         child: Container(
           padding: const EdgeInsets.all(SpacingTokens.componentSpacing),
@@ -399,7 +485,9 @@ class _ProviderOption extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected ? colors.primary : colors.border,
+                    color: isSelected
+                        ? colors.primary
+                        : (canSelect ? colors.border : colors.border.withValues(alpha: 0.5)),
                     width: 2,
                   ),
                   color: isSelected ? colors.primary : Colors.transparent,
@@ -410,7 +498,13 @@ class _ProviderOption extends StatelessWidget {
                         size: 14,
                         color: colors.onPrimary,
                       )
-                    : null,
+                    : (!canSelect
+                        ? Icon(
+                            Icons.download,
+                            size: 12,
+                            color: colors.onSurfaceVariant.withValues(alpha: 0.5),
+                          )
+                        : null),
               ),
               const SizedBox(width: SpacingTokens.componentSpacing),
               Expanded(
@@ -420,7 +514,7 @@ class _ProviderOption extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyles.bodyMedium.copyWith(
-                        color: colors.onSurface,
+                        color: canSelect ? colors.onSurface : colors.onSurfaceVariant,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -433,6 +527,27 @@ class _ProviderOption extends StatelessWidget {
                   ],
                 ),
               ),
+              if (actionLabel != null && onActionTap != null)
+                TextButton.icon(
+                  onPressed: onActionTap,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: Icon(
+                    Icons.open_in_new,
+                    size: 12,
+                    color: colors.primary,
+                  ),
+                  label: Text(
+                    actionLabel!,
+                    style: TextStyles.caption.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

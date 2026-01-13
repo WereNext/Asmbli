@@ -2,25 +2,27 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/mvp_message.dart';
 import '../models/mvp_settings.dart';
+import 'mvp_secure_storage_service.dart';
 
-/// Simple storage service for MVP using SharedPreferences
-/// Stores: API keys, settings, conversation history
+/// Storage service for MVP - combines SharedPreferences and Secure Storage
+///
+/// - API keys: Stored in platform-native secure storage (Keychain/Credential Manager)
+/// - Settings: Stored in SharedPreferences (not sensitive)
+/// - Messages: Stored in SharedPreferences (local only)
 class MvpStorageService {
-  static const _openAiKeyKey = 'mvp_openai_api_key';
-  static const _anthropicKeyKey = 'mvp_anthropic_api_key';
-  static const _tavilyKeyKey = 'mvp_tavily_api_key';
   static const _settingsKey = 'mvp_settings';
   static const _messagesKey = 'mvp_messages';
   static const _setupCompleteKey = 'mvp_setup_complete';
-
-  // Default Tavily API key for MVP web search (bundled for easy demo)
-  // Users can override this in settings if they have their own key
-  static const _defaultTavilyKey = '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';
+  static const _proxyEnabledKey = 'mvp_proxy_enabled';
+  static const _ollamaEnabledKey = 'mvp_ollama_enabled';
+  static const _ollamaBaseUrlKey = 'mvp_ollama_base_url';
 
   SharedPreferences? _prefs;
+  final MvpSecureStorageService _secureStorage = MvpSecureStorageService.instance;
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
+    await _secureStorage.initialize();
   }
 
   SharedPreferences get _preferences {
@@ -30,40 +32,37 @@ class MvpStorageService {
     return _prefs!;
   }
 
-  // --- API Keys ---
+  // --- API Keys (Secure Storage) ---
 
   Future<void> saveOpenAiApiKey(String key) async {
-    await _preferences.setString(_openAiKeyKey, key);
+    await _secureStorage.saveOpenAiApiKey(key);
   }
 
-  String? getOpenAiApiKey() {
-    return _preferences.getString(_openAiKeyKey);
+  Future<String?> getOpenAiApiKey() async {
+    return await _secureStorage.getOpenAiApiKey();
   }
 
   Future<void> saveAnthropicApiKey(String key) async {
-    await _preferences.setString(_anthropicKeyKey, key);
+    await _secureStorage.saveAnthropicApiKey(key);
   }
 
-  String? getAnthropicApiKey() {
-    return _preferences.getString(_anthropicKeyKey);
+  Future<String?> getAnthropicApiKey() async {
+    return await _secureStorage.getAnthropicApiKey();
   }
 
   Future<void> saveTavilyApiKey(String key) async {
-    await _preferences.setString(_tavilyKeyKey, key);
+    await _secureStorage.saveTavilyApiKey(key);
   }
 
-  String? getTavilyApiKey() {
-    // Return stored key or fall back to bundled default for MVP
-    return _preferences.getString(_tavilyKeyKey) ?? _defaultTavilyKey;
+  Future<String?> getTavilyApiKey() async {
+    return await _secureStorage.getTavilyApiKey();
   }
 
-  bool hasAnyApiKey() {
-    final openAi = getOpenAiApiKey();
-    final anthropic = getAnthropicApiKey();
-    return (openAi?.isNotEmpty ?? false) || (anthropic?.isNotEmpty ?? false);
+  Future<bool> hasAnyApiKey() async {
+    return await _secureStorage.hasAnyLlmApiKey();
   }
 
-  // --- Settings ---
+  // --- Settings (SharedPreferences) ---
 
   Future<void> saveSettings(MvpSettings settings) async {
     await _preferences.setString(_settingsKey, jsonEncode(settings.toJson()));
@@ -79,7 +78,35 @@ class MvpStorageService {
     }
   }
 
-  // --- Conversation History ---
+  // --- Proxy Settings ---
+
+  Future<void> setProxyEnabled(bool enabled) async {
+    await _preferences.setBool(_proxyEnabledKey, enabled);
+  }
+
+  bool isProxyEnabled() {
+    return _preferences.getBool(_proxyEnabledKey) ?? false;
+  }
+
+  // --- Ollama Settings ---
+
+  Future<void> setOllamaEnabled(bool enabled) async {
+    await _preferences.setBool(_ollamaEnabledKey, enabled);
+  }
+
+  bool isOllamaEnabled() {
+    return _preferences.getBool(_ollamaEnabledKey) ?? false;
+  }
+
+  Future<void> setOllamaBaseUrl(String url) async {
+    await _preferences.setString(_ollamaBaseUrlKey, url);
+  }
+
+  String getOllamaBaseUrl() {
+    return _preferences.getString(_ollamaBaseUrlKey) ?? 'http://localhost:11434';
+  }
+
+  // --- Conversation History (SharedPreferences) ---
 
   Future<void> saveMessages(List<MvpMessage> messages) async {
     final json = messages.map((m) => m.toJson()).toList();
@@ -116,11 +143,10 @@ class MvpStorageService {
   // --- Clear All ---
 
   Future<void> clearAll() async {
-    await _preferences.remove(_openAiKeyKey);
-    await _preferences.remove(_anthropicKeyKey);
-    await _preferences.remove(_tavilyKeyKey);
+    await _secureStorage.clearAllApiKeys();
     await _preferences.remove(_settingsKey);
     await _preferences.remove(_messagesKey);
     await _preferences.remove(_setupCompleteKey);
+    await _preferences.remove(_proxyEnabledKey);
   }
 }

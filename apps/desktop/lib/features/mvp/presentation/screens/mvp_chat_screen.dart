@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/design_system.dart';
+import '../../../../core/theme/color_schemes.dart';
+import '../../../../main_mvp.dart';
 import '../../models/mvp_message.dart';
 import '../../models/mvp_settings.dart';
 import '../../services/mvp_llm_service.dart';
@@ -10,14 +13,14 @@ import '../widgets/mvp_message_bubble.dart';
 import '../widgets/mvp_source_citation.dart';
 
 /// MVP Chat Screen - Core conversational experience
-class MvpChatScreen extends StatefulWidget {
+class MvpChatScreen extends ConsumerStatefulWidget {
   const MvpChatScreen({super.key});
 
   @override
-  State<MvpChatScreen> createState() => _MvpChatScreenState();
+  ConsumerState<MvpChatScreen> createState() => _MvpChatScreenState();
 }
 
-class _MvpChatScreenState extends State<MvpChatScreen> {
+class _MvpChatScreenState extends ConsumerState<MvpChatScreen> {
   final _storage = MvpStorageService();
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
@@ -31,6 +34,7 @@ class _MvpChatScreenState extends State<MvpChatScreen> {
   bool _initialized = false;
   bool _isLoading = false;
   bool _isSearching = false;
+  bool _showSettingsPanel = false;
   String? _errorMessage;
   String _currentStreamingContent = '';
 
@@ -47,16 +51,34 @@ class _MvpChatScreenState extends State<MvpChatScreen> {
     _settings = _storage.getSettings();
     _messages = _storage.getMessages();
 
+    // Get API keys from secure storage (async)
+    final openAiKey = await _storage.getOpenAiApiKey();
+    final anthropicKey = await _storage.getAnthropicApiKey();
+    final tavilyKey = await _storage.getTavilyApiKey();
+
+    // Check if proxy mode is enabled
+    final useProxy = _storage.isProxyEnabled();
+
+    // Check Ollama settings
+    final ollamaEnabled = _storage.isOllamaEnabled();
+    final ollamaBaseUrl = _storage.getOllamaBaseUrl();
+
     // Initialize services
     _llmService = MvpLlmService(
-      openAiApiKey: _storage.getOpenAiApiKey(),
-      anthropicApiKey: _storage.getAnthropicApiKey(),
+      openAiApiKey: openAiKey,
+      anthropicApiKey: anthropicKey,
+      ollamaEnabled: ollamaEnabled,
+      ollamaBaseUrl: ollamaBaseUrl,
     );
     _webSearchService = MvpWebSearchService(
-      tavilyApiKey: _storage.getTavilyApiKey(),
+      tavilyApiKey: tavilyKey,
+      useProxy: useProxy,
+      proxyBaseUrl: useProxy ? 'http://localhost:8765' : null,
     );
 
-    setState(() => _initialized = true);
+    if (mounted) {
+      setState(() => _initialized = true);
+    }
 
     // Scroll to bottom if there are messages
     if (_messages.isNotEmpty) {
@@ -272,14 +294,19 @@ class _MvpChatScreenState extends State<MvpChatScreen> {
           ),
         ),
         child: SafeArea(
-          child: Column(
+          child: Row(
             children: [
-              // Header
-              _ChatHeader(
-                agentName: _settings.agentName,
-                onSettingsTap: () => context.go('/mvp/settings'),
-                onClearTap: _messages.isNotEmpty ? _clearConversation : null,
-              ),
+              // Main chat area
+              Expanded(
+                child: Column(
+                  children: [
+                    // Header
+                    _ChatHeader(
+                      agentName: _settings.agentName,
+                      onSettingsTap: () => setState(() => _showSettingsPanel = !_showSettingsPanel),
+                      onClearTap: _messages.isNotEmpty ? _clearConversation : null,
+                      settingsOpen: _showSettingsPanel,
+                    ),
 
               // Not configured banner
               if (!isConfigured)
@@ -473,6 +500,29 @@ class _MvpChatScreenState extends State<MvpChatScreen> {
                   ],
                 ),
               ),
+                  ],
+                ),
+              ),
+
+              // Settings panel
+              ClipRect(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  width: _showSettingsPanel ? 380 : 0,
+                  child: _showSettingsPanel
+                      ? _SettingsPanel(
+                          settings: _settings,
+                          onSettingsChanged: (newSettings) {
+                            setState(() => _settings = newSettings);
+                            _storage.saveSettings(newSettings);
+                          },
+                          onClose: () => setState(() => _showSettingsPanel = false),
+                          onApiKeysPressed: () => context.go('/mvp/setup'),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ),
             ],
           ),
         ),
@@ -485,11 +535,13 @@ class _ChatHeader extends StatelessWidget {
   final String agentName;
   final VoidCallback onSettingsTap;
   final VoidCallback? onClearTap;
+  final bool settingsOpen;
 
   const _ChatHeader({
     required this.agentName,
     required this.onSettingsTap,
     this.onClearTap,
+    this.settingsOpen = false,
   });
 
   @override
@@ -537,9 +589,12 @@ class _ChatHeader extends StatelessWidget {
               tooltip: 'Clear conversation',
             ),
           IconButton(
-            icon: Icon(Icons.settings, color: colors.onSurfaceVariant),
+            icon: Icon(
+              settingsOpen ? Icons.close : Icons.settings,
+              color: settingsOpen ? colors.primary : colors.onSurfaceVariant,
+            ),
             onPressed: onSettingsTap,
-            tooltip: 'Settings',
+            tooltip: settingsOpen ? 'Close settings' : 'Settings',
           ),
         ],
       ),
@@ -632,6 +687,523 @@ class _EmptyState extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Slide-out settings panel
+class _SettingsPanel extends ConsumerStatefulWidget {
+  final MvpSettings settings;
+  final ValueChanged<MvpSettings> onSettingsChanged;
+  final VoidCallback onClose;
+  final VoidCallback onApiKeysPressed;
+
+  const _SettingsPanel({
+    required this.settings,
+    required this.onSettingsChanged,
+    required this.onClose,
+    required this.onApiKeysPressed,
+  });
+
+  @override
+  ConsumerState<_SettingsPanel> createState() => _SettingsPanelState();
+}
+
+class _SettingsPanelState extends ConsumerState<_SettingsPanel> {
+  late TextEditingController _agentNameController;
+  late TextEditingController _systemPromptController;
+
+  @override
+  void initState() {
+    super.initState();
+    _agentNameController = TextEditingController(text: widget.settings.agentName);
+    _systemPromptController = TextEditingController(text: widget.settings.systemPrompt);
+  }
+
+  @override
+  void dispose() {
+    _agentNameController.dispose();
+    _systemPromptController.dispose();
+    super.dispose();
+  }
+
+  void _updateSettings(MvpSettings Function(MvpSettings) update) {
+    widget.onSettingsChanged(update(widget.settings));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ThemeColors(context);
+    final themeState = ref.watch(mvpThemeProvider);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(
+          left: BorderSide(color: colors.border),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Panel header
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SpacingTokens.componentSpacing,
+              vertical: SpacingTokens.iconSpacing,
+            ),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: colors.border.withValues(alpha: 0.5)),
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'Settings',
+                  style: TextStyles.sectionTitle.copyWith(
+                    color: colors.onSurface,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: Icon(Icons.close, color: colors.onSurfaceVariant),
+                  onPressed: widget.onClose,
+                ),
+              ],
+            ),
+          ),
+
+          // Scrollable settings content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(SpacingTokens.componentSpacing),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Agent Identity
+                  _PanelSection(
+                    title: 'Agent Identity',
+                    children: [
+                      _PanelField(
+                        label: 'Name',
+                        child: TextField(
+                          controller: _agentNameController,
+                          onChanged: (value) {
+                            _updateSettings((s) => s.copyWith(
+                              agentName: value.isEmpty ? MvpSettings.defaultAgentName : value,
+                            ));
+                          },
+                          style: TextStyles.bodySmall.copyWith(color: colors.onSurface),
+                          decoration: _inputDecoration(colors, 'Research Assistant'),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: SpacingTokens.componentSpacing),
+
+                  // Appearance
+                  _PanelSection(
+                    title: 'Appearance',
+                    children: [
+                      _PanelField(
+                        label: 'Theme',
+                        child: Wrap(
+                          spacing: SpacingTokens.xs_precise,
+                          runSpacing: SpacingTokens.xs_precise,
+                          children: [
+                            _MiniThemeChip(
+                              icon: Icons.wb_sunny,
+                              isSelected: themeState.mode == ThemeMode.light,
+                              onTap: () => ref.read(mvpThemeProvider.notifier).setThemeMode(ThemeMode.light),
+                            ),
+                            _MiniThemeChip(
+                              icon: Icons.nightlight_round,
+                              isSelected: themeState.mode == ThemeMode.dark,
+                              onTap: () => ref.read(mvpThemeProvider.notifier).setThemeMode(ThemeMode.dark),
+                            ),
+                            _MiniThemeChip(
+                              icon: Icons.auto_mode,
+                              isSelected: themeState.mode == ThemeMode.system,
+                              onTap: () => ref.read(mvpThemeProvider.notifier).setThemeMode(ThemeMode.system),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: SpacingTokens.iconSpacing),
+                      _PanelField(
+                        label: 'Color Scheme',
+                        child: Wrap(
+                          spacing: SpacingTokens.xs_precise,
+                          runSpacing: SpacingTokens.xs_precise,
+                          children: AppColorSchemes.all.map((scheme) {
+                            final isSelected = themeState.colorScheme == scheme.id;
+                            return Tooltip(
+                              message: scheme.name,
+                              child: InkWell(
+                                onTap: () => ref.read(mvpThemeProvider.notifier).setColorScheme(scheme.id),
+                                borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+                                    border: Border.all(
+                                      color: isSelected ? colors.primary : Colors.transparent,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: scheme.colors.map((c) => Container(
+                                      width: 14,
+                                      height: 14,
+                                      decoration: BoxDecoration(
+                                        color: c,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    )).toList(),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: SpacingTokens.componentSpacing),
+
+                  // Model settings
+                  _PanelSection(
+                    title: 'Model',
+                    children: [
+                      _TemperatureControl(
+                        value: widget.settings.temperature,
+                        onChanged: (value) {
+                          _updateSettings((s) => s.copyWith(temperature: value));
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: SpacingTokens.componentSpacing),
+
+                  // Features
+                  _PanelSection(
+                    title: 'Features',
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Web Search',
+                            style: TextStyles.bodySmall.copyWith(color: colors.onSurface),
+                          ),
+                          Switch(
+                            value: widget.settings.webSearchEnabled,
+                            onChanged: (value) {
+                              _updateSettings((s) => s.copyWith(webSearchEnabled: value));
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: SpacingTokens.componentSpacing),
+
+                  // API Keys button
+                  _PanelSection(
+                    title: 'API Keys',
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: AsmblButton.outline(
+                          text: 'Manage API Keys',
+                          icon: Icons.key,
+                          onPressed: widget.onApiKeysPressed,
+                          size: AsmblButtonSize.small,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: SpacingTokens.sectionSpacing),
+
+                  // System Prompt (expandable)
+                  _PanelSection(
+                    title: 'System Prompt',
+                    children: [
+                      TextField(
+                        controller: _systemPromptController,
+                        onChanged: (value) {
+                          _updateSettings((s) => s.copyWith(
+                            systemPrompt: value.isEmpty ? MvpSettings.defaultSystemPrompt : value,
+                          ));
+                        },
+                        maxLines: 4,
+                        style: TextStyles.caption.copyWith(color: colors.onSurface),
+                        decoration: _inputDecoration(colors, 'You are a helpful AI assistant...'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(ThemeColors colors, String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyles.bodySmall.copyWith(
+        color: colors.onSurfaceVariant.withValues(alpha: 0.5),
+      ),
+      filled: true,
+      fillColor: colors.surface,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.iconSpacing,
+        vertical: SpacingTokens.iconSpacing,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+        borderSide: BorderSide(color: colors.border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+        borderSide: BorderSide(color: colors.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+        borderSide: BorderSide(color: colors.primary, width: 2),
+      ),
+    );
+  }
+}
+
+class _PanelSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _PanelSection({
+    required this.title,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ThemeColors(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyles.caption.copyWith(
+            color: colors.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: SpacingTokens.iconSpacing),
+        ...children,
+      ],
+    );
+  }
+}
+
+class _PanelField extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _PanelField({
+    required this.label,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ThemeColors(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyles.caption.copyWith(
+            color: colors.onSurface,
+          ),
+        ),
+        const SizedBox(height: 4),
+        child,
+      ],
+    );
+  }
+}
+
+class _MiniThemeChip extends StatelessWidget {
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _MiniThemeChip({
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ThemeColors(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+      child: Container(
+        padding: const EdgeInsets.all(SpacingTokens.iconSpacing),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.primary.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+          border: Border.all(
+            color: isSelected ? colors.primary : colors.border,
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: isSelected ? colors.primary : colors.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _TemperatureControl extends StatelessWidget {
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _TemperatureControl({
+    required this.value,
+    required this.onChanged,
+  });
+
+  String _getTemperatureLabel(double temp) {
+    if (temp <= 0.2) return 'Precise';
+    if (temp <= 0.4) return 'Focused';
+    if (temp <= 0.6) return 'Balanced';
+    if (temp <= 0.8) return 'Creative';
+    return 'Wild';
+  }
+
+  String _getTemperatureDescription(double temp) {
+    if (temp <= 0.2) return 'Factual, deterministic responses';
+    if (temp <= 0.4) return 'Consistent, reliable answers';
+    if (temp <= 0.6) return 'Mix of accuracy and creativity';
+    if (temp <= 0.8) return 'More varied, imaginative output';
+    return 'Maximum creativity and randomness';
+  }
+
+  Color _getTemperatureColor(double temp, ThemeColors colors) {
+    if (temp <= 0.3) return colors.info;
+    if (temp <= 0.6) return colors.success;
+    if (temp <= 0.8) return colors.warning;
+    return colors.error;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = ThemeColors(context);
+    final label = _getTemperatureLabel(value);
+    final description = _getTemperatureDescription(value);
+    final tempColor = _getTemperatureColor(value, colors);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header with value and label
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Temperature',
+              style: TextStyles.caption.copyWith(color: colors.onSurface),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: tempColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+              ),
+              child: Text(
+                '$label (${value.toStringAsFixed(1)})',
+                style: TextStyles.caption.copyWith(
+                  color: tempColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Slider with gradient track
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 6,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+            activeTrackColor: tempColor,
+            inactiveTrackColor: colors.border,
+            thumbColor: tempColor,
+            overlayColor: tempColor.withValues(alpha: 0.2),
+          ),
+          child: Slider(
+            value: value,
+            min: 0.0,
+            max: 1.0,
+            divisions: 10,
+            onChanged: onChanged,
+          ),
+        ),
+
+        // Scale labels
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Precise',
+                style: TextStyles.caption.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 10,
+                ),
+              ),
+              Text(
+                'Creative',
+                style: TextStyles.caption.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+
+        // Description
+        Text(
+          description,
+          style: TextStyles.caption.copyWith(
+            color: colors.onSurfaceVariant,
+            fontSize: 11,
+          ),
+        ),
+      ],
     );
   }
 }
