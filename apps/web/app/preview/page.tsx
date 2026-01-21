@@ -277,6 +277,66 @@ export default function PreviewDownloadPage() {
           </div>
         </div>
 
+        {/* Ollama Local Setup - First */}
+        <Card className="max-w-4xl mx-auto bg-gradient-to-br from-purple-950/80 to-indigo-950/80 border-purple-700/50 mb-12">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-purple-400" />
+              Step 1: Set Up Ollama (Free, No API Key Needed)
+            </CardTitle>
+            <CardDescription className="text-purple-200/70">
+              Run AI completely offline on your own machine — we recommend setting this up first
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                  <div className="text-sm text-neutral-300">
+                    <strong>Download Ollama</strong> from{' '}
+                    <a
+                      href="https://ollama.com/download"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-400 hover:underline inline-flex items-center gap-1"
+                    >
+                      ollama.com/download
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                  <div className="text-sm text-neutral-300">
+                    <strong>Install and run Ollama</strong> — it runs in the background
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                  <div className="text-sm text-neutral-300">
+                    <strong>Pull a model</strong> — open Terminal and run:
+                    <code className="block mt-2 px-3 py-2 bg-neutral-900 rounded text-purple-300 font-mono text-xs">
+                      ollama pull llama3.2
+                    </code>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-neutral-900/50 rounded-lg p-4">
+                <p className="text-sm text-neutral-300 mb-3">
+                  <strong className="text-purple-300">Recommended models:</strong>
+                </p>
+                <ul className="space-y-2 text-xs text-neutral-400">
+                  <li><code className="text-purple-300">llama3.2</code> — Meta, 3B params, fast & lightweight</li>
+                  <li><code className="text-purple-300">gemma3</code> — Google, 27B params, great quality</li>
+                  <li><code className="text-purple-300">gpt-oss:20b</code> — OpenAI, needs 16GB RAM</li>
+                  <li><code className="text-purple-300">deepseek-r1</code> — Best for reasoning tasks</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Installation Instructions */}
         <div className="max-w-4xl mx-auto mb-12">
           <Card className="bg-amber-900/20 border-amber-700/50 mb-6">
@@ -396,68 +456,6 @@ export default function PreviewDownloadPage() {
                   Customize your agent and begin conversations
                 </p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Ollama Local Setup */}
-        <Card className="max-w-3xl mx-auto bg-gradient-to-br from-purple-950/80 to-indigo-950/80 border-purple-700/50 mb-12">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Cpu className="w-5 h-5 text-purple-400" />
-              Run AI Locally with Ollama (Free)
-            </CardTitle>
-            <CardDescription className="text-purple-200/70">
-              No API key needed — run open-source AI models completely offline on your own machine
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
-                <div className="text-sm text-neutral-300">
-                  <strong>Download Ollama</strong> from{' '}
-                  <a
-                    href="https://ollama.com/download"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-purple-400 hover:underline inline-flex items-center gap-1"
-                  >
-                    ollama.com/download
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
-                <div className="text-sm text-neutral-300">
-                  <strong>Install and run Ollama</strong> — it runs in the background
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
-                <div className="text-sm text-neutral-300">
-                  <strong>Pull a model</strong> — open Terminal and run:
-                  <code className="block mt-2 px-3 py-2 bg-neutral-900 rounded text-purple-300 font-mono text-xs">
-                    ollama pull gpt-oss:20b
-                  </code>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
-                <div className="text-sm text-neutral-300">
-                  <strong>Enable Ollama in Asmbli</strong> — go to Settings and toggle on Ollama
-                </div>
-              </div>
-            </div>
-            <div className="bg-neutral-900/50 rounded-lg p-3 mt-4">
-              <p className="text-xs text-neutral-400">
-                <strong>Recommended models:</strong>{' '}
-                <code className="text-purple-300">gpt-oss:20b</code> (OpenAI, runs on 16GB RAM),{' '}
-                <code className="text-purple-300">gemma3</code> (Google, 27B),{' '}
-                <code className="text-purple-300">llama3.2</code> (Meta, lightweight),{' '}
-                <code className="text-purple-300">deepseek-r1</code> (reasoning)
-              </p>
             </div>
           </CardContent>
         </Card>
