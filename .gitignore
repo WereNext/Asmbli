@@ -48,3 +48,4 @@ coverage/
 # Next.js build artifacts
 apps/web/.next/
 .vs/
+Asmbli-original/
