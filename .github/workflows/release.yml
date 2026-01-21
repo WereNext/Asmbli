@@ -41,7 +41,7 @@ jobs:
           - os: macos-latest
             platform: macos
             artifact-name: asmbli-macos
-            build-cmd: flutter build macos --release
+            build-cmd: flutter build macos --release -t lib/main_mvp.dart
             asset-path: build/macos/Build/Products/Release
           - os: windows-latest
             platform: windows

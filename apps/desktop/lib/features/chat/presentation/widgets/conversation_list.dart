@@ -60,6 +60,7 @@ class ConversationList extends ConsumerWidget {
  ref.read(selectedConversationIdProvider.notifier).state = conversation.id;
  },
  onArchive: () => _archiveConversation(ref, conversation.id),
+ onDelete: () => _deleteConversation(context, ref, conversation),
  );
  },
  );
@@ -194,29 +195,127 @@ class ConversationList extends ConsumerWidget {
  // Handle error
  }
  }
+
+ void _deleteConversation(BuildContext context, WidgetRef ref, Conversation conversation) async {
+ // Show confirmation dialog
+ final confirmed = await showDialog<bool>(
+ context: context,
+ builder: (context) => AlertDialog(
+ backgroundColor: ThemeColors(context).surface,
+ title: Text(
+ 'Delete Conversation',
+ style: TextStyles.bodyLarge.copyWith(
+ color: ThemeColors(context).onSurface,
+ fontWeight: FontWeight.w600,
+ ),
+ ),
+ content: Column(
+ mainAxisSize: MainAxisSize.min,
+ crossAxisAlignment: CrossAxisAlignment.start,
+ children: [
+ Text(
+ 'Are you sure you want to delete this conversation?',
+ style: TextStyles.bodyMedium.copyWith(
+ color: ThemeColors(context).onSurface,
+ ),
+ ),
+ const SizedBox(height: SpacingTokens.sm),
+ Text(
+ '"${conversation.title}"',
+ style: TextStyles.bodyMedium.copyWith(
+ color: ThemeColors(context).onSurfaceVariant,
+ fontStyle: FontStyle.italic,
+ ),
+ maxLines: 2,
+ overflow: TextOverflow.ellipsis,
+ ),
+ const SizedBox(height: SpacingTokens.md),
+ Container(
+ padding: const EdgeInsets.all(SpacingTokens.sm),
+ decoration: BoxDecoration(
+ color: ThemeColors(context).error.withValues(alpha: 0.1),
+ borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+ border: Border.all(color: ThemeColors(context).error.withValues(alpha: 0.3)),
+ ),
+ child: Row(
+ children: [
+ Icon(
+ Icons.warning_amber_rounded,
+ size: 16,
+ color: ThemeColors(context).error,
+ ),
+ const SizedBox(width: SpacingTokens.sm),
+ Expanded(
+ child: Text(
+ 'This action cannot be undone.',
+ style: TextStyles.bodySmall.copyWith(
+ color: ThemeColors(context).error,
+ fontWeight: FontWeight.w500,
+ ),
+ ),
+ ),
+ ],
+ ),
+ ),
+ ],
+ ),
+ actions: [
+ AsmblButton.secondary(
+ text: 'Cancel',
+ onPressed: () => Navigator.of(context).pop(false),
+ ),
+ AsmblButton.destructive(
+ text: 'Delete',
+ onPressed: () => Navigator.of(context).pop(true),
+ ),
+ ],
+ ),
+ );
+
+ if (confirmed == true) {
+ try {
+ final deleteConversation = ref.read(deleteConversationProvider);
+ await deleteConversation(conversation.id);
+ } catch (e) {
+ // Handle error
+ }
+ }
+ }
 }
 
-class _ConversationItem extends ConsumerWidget {
+class _ConversationItem extends ConsumerStatefulWidget {
  final Conversation conversation;
  final bool isSelected;
  final VoidCallback onTap;
  final VoidCallback onArchive;
+ final VoidCallback onDelete;
 
  const _ConversationItem({
  required this.conversation,
  required this.isSelected,
  required this.onTap,
  required this.onArchive,
+ required this.onDelete,
  });
 
  @override
- Widget build(BuildContext context, WidgetRef ref) {
+ ConsumerState<_ConversationItem> createState() => _ConversationItemState();
+}
+
+class _ConversationItemState extends ConsumerState<_ConversationItem> {
+ bool _isHovered = false;
+
+ @override
+ Widget build(BuildContext context) {
  return Container(
  margin: const EdgeInsets.only(bottom: SpacingTokens.sm),
+ child: MouseRegion(
+ onEnter: (_) => setState(() => _isHovered = true),
+ onExit: (_) => setState(() => _isHovered = false),
  child: Material(
  color: Colors.transparent,
  child: InkWell(
- onTap: onTap,
+ onTap: widget.onTap,
  onLongPress: () => _showContextMenu(context),
  borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
  hoverColor: ThemeColors(context).primary.withValues(alpha: 0.04),
@@ -225,14 +324,40 @@ class _ConversationItem extends ConsumerWidget {
  padding: const EdgeInsets.all(SpacingTokens.md),
  decoration: BoxDecoration(
  borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
- border: isSelected 
+ border: widget.isSelected
  ? Border.all(color: ThemeColors(context).primary, width: 2)
  : Border.all(color: ThemeColors(context).border),
- color: isSelected 
+ color: widget.isSelected
  ? ThemeColors(context).primary.withValues(alpha: 0.05)
  : ThemeColors(context).surface.withValues(alpha: 0.5),
  ),
- child: _buildConversationContent(context, ref),
+ child: Stack(
+ children: [
+ _buildConversationContent(context, ref),
+ // Delete button on hover
+ if (_isHovered)
+ Positioned(
+ top: 0,
+ right: 0,
+ child: GestureDetector(
+ onTap: widget.onDelete,
+ child: Container(
+ padding: const EdgeInsets.all(4),
+ decoration: BoxDecoration(
+ color: ThemeColors(context).error.withValues(alpha: 0.1),
+ borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+ ),
+ child: Icon(
+ Icons.close,
+ size: 14,
+ color: ThemeColors(context).error,
+ ),
+ ),
+ ),
+ ),
+ ],
+ ),
+ ),
  ),
  ),
  ),
@@ -240,7 +365,7 @@ class _ConversationItem extends ConsumerWidget {
  }
 
  Widget _buildConversationContent(BuildContext context, WidgetRef ref) {
- final agentId = _getAgentId();
+ final agentId = widget.conversation.metadata?['agentId'] as String?;
  
  if (agentId != null) {
  return _buildAgentConversationCard(context, ref, agentId);
@@ -338,8 +463,8 @@ class _ConversationItem extends ConsumerWidget {
  Text(
  agent.name,
  style: TextStyles.bodyMedium.copyWith(
- fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
- color: isSelected 
+ fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+ color: widget.isSelected
  ? ThemeColors(context).primary
  : ThemeColors(context).onSurface,
  ),
@@ -351,13 +476,13 @@ class _ConversationItem extends ConsumerWidget {
  ),
  ],
  ),
- 
+
  const SizedBox(height: SpacingTokens.xs),
- 
+
  // Conversation Title (if different from agent name)
- if (conversation.title != agent.name && conversation.title.isNotEmpty) ...[
+ if (widget.conversation.title != agent.name && widget.conversation.title.isNotEmpty) ...[
  Text(
- conversation.title,
+ widget.conversation.title,
  style: TextStyles.bodySmall.copyWith(
  color: ThemeColors(context).onSurfaceVariant,
  fontStyle: FontStyle.italic,
@@ -398,7 +523,7 @@ class _ConversationItem extends ConsumerWidget {
  ],
  const Spacer(),
  Text(
- _formatDate(conversation.createdAt),
+ _formatDate(widget.conversation.createdAt),
  style: TextStyles.caption.copyWith(
  color: ThemeColors(context).onSurfaceVariant,
  ),
@@ -416,14 +541,14 @@ class _ConversationItem extends ConsumerWidget {
  ),
  const SizedBox(width: SpacingTokens.xs),
  Text(
- '${conversation.messages.length} messages',
+ '${widget.conversation.messages.length} messages',
  style: TextStyles.caption.copyWith(
  color: ThemeColors(context).onSurfaceVariant,
  ),
  ),
  const Spacer(),
  Text(
- _formatDate(conversation.createdAt),
+ _formatDate(widget.conversation.createdAt),
  style: TextStyles.caption.copyWith(
  color: ThemeColors(context).onSurfaceVariant,
  ),
@@ -473,10 +598,10 @@ class _ConversationItem extends ConsumerWidget {
  const SizedBox(width: 8),
  Expanded(
  child: Text(
- conversation.title,
+ widget.conversation.title,
  style: TextStyles.bodyMedium.copyWith(
- fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
- color: isSelected 
+ fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+ color: widget.isSelected
  ? ThemeColors(context).primary
  : ThemeColors(context).onSurface,
  ),
@@ -508,14 +633,14 @@ class _ConversationItem extends ConsumerWidget {
  ),
  const SizedBox(width: SpacingTokens.xs),
  Text(
- '${conversation.messages.length} messages',
+ '${widget.conversation.messages.length} messages',
  style: TextStyles.caption.copyWith(
  color: ThemeColors(context).onSurfaceVariant,
  ),
  ),
  const Spacer(),
  Text(
- _formatDate(conversation.createdAt),
+ _formatDate(widget.conversation.createdAt),
  style: TextStyles.caption.copyWith(
  color: ThemeColors(context).onSurfaceVariant,
  ),
@@ -532,7 +657,7 @@ class _ConversationItem extends ConsumerWidget {
  builder: (context) => AlertDialog(
  backgroundColor: ThemeColors(context).surface,
  title: Text(
- conversation.title,
+ widget.conversation.title,
  style: TextStyles.bodyMedium.copyWith(
  color: ThemeColors(context).onSurface,
  fontWeight: FontWeight.w600,
@@ -556,7 +681,23 @@ class _ConversationItem extends ConsumerWidget {
  ),
  onTap: () {
  Navigator.of(context).pop();
- onArchive();
+ widget.onArchive();
+ },
+ ),
+ ListTile(
+ leading: Icon(
+ Icons.delete_outline,
+ color: ThemeColors(context).error,
+ ),
+ title: Text(
+ 'Delete Conversation',
+ style: TextStyles.bodyMedium.copyWith(
+ color: ThemeColors(context).error,
+ ),
+ ),
+ onTap: () {
+ Navigator.of(context).pop();
+ widget.onDelete();
  },
  ),
  ],
@@ -572,7 +713,7 @@ class _ConversationItem extends ConsumerWidget {
  }
 
  String _getTypeLabel() {
- final type = conversation.metadata?['type'] as String?;
+ final type = widget.conversation.metadata?['type'] as String?;
  switch (type) {
  case 'agent':
  return 'AGENT';
@@ -584,7 +725,7 @@ class _ConversationItem extends ConsumerWidget {
  }
 
  IconData _getTypeIcon() {
- final type = conversation.metadata?['type'] as String?;
+ final type = widget.conversation.metadata?['type'] as String?;
  switch (type) {
  case 'agent':
  return Icons.smart_toy;
@@ -596,7 +737,7 @@ class _ConversationItem extends ConsumerWidget {
  }
 
  Color _getTypeColor(BuildContext context) {
- final type = conversation.metadata?['type'] as String?;
+ final type = widget.conversation.metadata?['type'] as String?;
  switch (type) {
  case 'agent':
  return ThemeColors(context).primary;
@@ -609,9 +750,9 @@ class _ConversationItem extends ConsumerWidget {
 
  String? _getApiProvider() {
  // First try to get from stored conversation metadata
- final storedModelName = conversation.metadata?['defaultModelName'] as String?;
- final modelType = conversation.metadata?['modelType'] as String?;
- final provider = conversation.metadata?['defaultModelProvider'] as String?;
+ final storedModelName = widget.conversation.metadata?['defaultModelName'] as String?;
+ final modelType = widget.conversation.metadata?['modelType'] as String?;
+ final provider = widget.conversation.metadata?['defaultModelProvider'] as String?;
 
  if (modelType == 'local' && storedModelName != null) {
    return 'Local';
@@ -621,15 +762,15 @@ class _ConversationItem extends ConsumerWidget {
    return storedModelName;
  } else {
    // Fallback to legacy apiProvider field
-   return conversation.metadata?['apiProvider'] as String?;
+   return widget.conversation.metadata?['apiProvider'] as String?;
  }
  }
 
  String? _getProviderDisplayText() {
-   final storedModelName = conversation.metadata?['defaultModelName'] as String?;
-   final modelType = conversation.metadata?['modelType'] as String?;
-   final provider = conversation.metadata?['defaultModelProvider'] as String?;
-   
+   final storedModelName = widget.conversation.metadata?['defaultModelName'] as String?;
+   final modelType = widget.conversation.metadata?['modelType'] as String?;
+   final provider = widget.conversation.metadata?['defaultModelProvider'] as String?;
+
    if (modelType == 'local' && storedModelName != null) {
      return 'Local';
    } else if (provider != null) {
@@ -638,7 +779,7 @@ class _ConversationItem extends ConsumerWidget {
      return storedModelName;
    } else {
      // Fallback to legacy apiProvider field
-     final legacyProvider = conversation.metadata?['apiProvider'] as String?;
+     final legacyProvider = widget.conversation.metadata?['apiProvider'] as String?;
      return legacyProvider;
    }
  }
@@ -656,10 +797,6 @@ class _ConversationItem extends ConsumerWidget {
  } else {
  return '${date.day}/${date.month}';
  }
- }
-
- String? _getAgentId() {
- return conversation.metadata?['agentId'] as String?;
  }
 
  Color _getAgentColor(Agent agent, BuildContext context) {

@@ -7,73 +7,25 @@ class DemoCodeEditor extends StatefulWidget {
   final String? initialFilePath;
   final VoidCallback? onClose;
   final String? actionContext;
+  final String? deliverableType; // refactor, api, test, devops, review
 
   const DemoCodeEditor({
     super.key,
     this.initialFilePath,
     this.onClose,
     this.actionContext,
+    this.deliverableType,
   });
 
   @override
   State<DemoCodeEditor> createState() => _DemoCodeEditorState();
 }
 
-class _DemoCodeEditorState extends State<DemoCodeEditor> 
+class _DemoCodeEditorState extends State<DemoCodeEditor>
     with TickerProviderStateMixin {
-  // File system simulation
-  final Map<String, FileNode> _fileTree = {
-    'src': FileNode(
-      name: 'src',
-      isDirectory: true,
-      children: {
-        'components': FileNode(
-          name: 'components',
-          isDirectory: true,
-          children: {
-            'Dashboard.tsx': FileNode(
-              name: 'Dashboard.tsx',
-              content: _dashboardCode,
-              language: 'typescript',
-            ),
-            'TaskCard.tsx': FileNode(
-              name: 'TaskCard.tsx',
-              content: _taskCardCode,
-              language: 'typescript',
-            ),
-          },
-        ),
-        'api': FileNode(
-          name: 'api',
-          isDirectory: true,
-          children: {
-            'client.ts': FileNode(
-              name: 'client.ts',
-              content: _apiClientCode,
-              language: 'typescript',
-            ),
-          },
-        ),
-        'App.tsx': FileNode(
-          name: 'App.tsx',
-          content: _appCode,
-          language: 'typescript',
-        ),
-      },
-    ),
-    'package.json': FileNode(
-      name: 'package.json',
-      content: _packageJsonCode,
-      language: 'json',
-    ),
-    'README.md': FileNode(
-      name: 'README.md',
-      content: _readmeCode,
-      language: 'markdown',
-    ),
-  };
-
-  String _currentFilePath = 'src/App.tsx';
+  // File system simulation - initialized based on deliverable type
+  late Map<String, FileNode> _fileTree;
+  late String _currentFilePath;
   late String _currentContent;
   final TextEditingController _codeController = TextEditingController();
   final List<String> _gitLog = [];
@@ -91,9 +43,263 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
   @override
   void initState() {
     super.initState();
+    _initializeFileTree();
     _initializeAnimations();
     _loadFile(widget.initialFilePath ?? _currentFilePath);
     _simulateGitStatus();
+  }
+
+  void _initializeFileTree() {
+    final config = _getFileTreeConfig();
+    _fileTree = config['fileTree'] as Map<String, FileNode>;
+    _currentFilePath = config['defaultFile'] as String;
+  }
+
+  Map<String, dynamic> _getFileTreeConfig() {
+    final type = widget.deliverableType?.toLowerCase() ?? 'refactor';
+
+    switch (type) {
+      case 'api':
+        return {
+          'defaultFile': 'src/api/routes.ts',
+          'fileTree': {
+            'src': FileNode(
+              name: 'src',
+              isDirectory: true,
+              children: {
+                'api': FileNode(
+                  name: 'api',
+                  isDirectory: true,
+                  children: {
+                    'routes.ts': FileNode(
+                      name: 'routes.ts',
+                      content: _apiRoutesCode,
+                      language: 'typescript',
+                    ),
+                    'middleware.ts': FileNode(
+                      name: 'middleware.ts',
+                      content: _apiMiddlewareCode,
+                      language: 'typescript',
+                    ),
+                    'validators.ts': FileNode(
+                      name: 'validators.ts',
+                      content: _apiValidatorsCode,
+                      language: 'typescript',
+                    ),
+                  },
+                ),
+                'models': FileNode(
+                  name: 'models',
+                  isDirectory: true,
+                  children: {
+                    'User.ts': FileNode(
+                      name: 'User.ts',
+                      content: _apiUserModelCode,
+                      language: 'typescript',
+                    ),
+                  },
+                ),
+              },
+            ),
+            'package.json': FileNode(
+              name: 'package.json',
+              content: _apiPackageJson,
+              language: 'json',
+            ),
+          },
+        };
+
+      case 'test':
+        return {
+          'defaultFile': 'tests/auth.test.ts',
+          'fileTree': {
+            'tests': FileNode(
+              name: 'tests',
+              isDirectory: true,
+              children: {
+                'auth.test.ts': FileNode(
+                  name: 'auth.test.ts',
+                  content: _testAuthCode,
+                  language: 'typescript',
+                ),
+                'api.test.ts': FileNode(
+                  name: 'api.test.ts',
+                  content: _testApiCode,
+                  language: 'typescript',
+                ),
+                'utils.test.ts': FileNode(
+                  name: 'utils.test.ts',
+                  content: _testUtilsCode,
+                  language: 'typescript',
+                ),
+              },
+            ),
+            'src': FileNode(
+              name: 'src',
+              isDirectory: true,
+              children: {
+                'auth.ts': FileNode(
+                  name: 'auth.ts',
+                  content: _testAuthSourceCode,
+                  language: 'typescript',
+                ),
+              },
+            ),
+            'jest.config.js': FileNode(
+              name: 'jest.config.js',
+              content: _jestConfigCode,
+              language: 'javascript',
+            ),
+          },
+        };
+
+      case 'devops':
+        return {
+          'defaultFile': '.github/workflows/ci.yml',
+          'fileTree': {
+            '.github': FileNode(
+              name: '.github',
+              isDirectory: true,
+              children: {
+                'workflows': FileNode(
+                  name: 'workflows',
+                  isDirectory: true,
+                  children: {
+                    'ci.yml': FileNode(
+                      name: 'ci.yml',
+                      content: _devopsCiCode,
+                      language: 'yaml',
+                    ),
+                    'deploy.yml': FileNode(
+                      name: 'deploy.yml',
+                      content: _devopsDeployCode,
+                      language: 'yaml',
+                    ),
+                  },
+                ),
+              },
+            ),
+            'docker': FileNode(
+              name: 'docker',
+              isDirectory: true,
+              children: {
+                'Dockerfile': FileNode(
+                  name: 'Dockerfile',
+                  content: _dockerfileCode,
+                  language: 'dockerfile',
+                ),
+                'docker-compose.yml': FileNode(
+                  name: 'docker-compose.yml',
+                  content: _dockerComposeCode,
+                  language: 'yaml',
+                ),
+              },
+            ),
+            'terraform': FileNode(
+              name: 'terraform',
+              isDirectory: true,
+              children: {
+                'main.tf': FileNode(
+                  name: 'main.tf',
+                  content: _terraformCode,
+                  language: 'hcl',
+                ),
+              },
+            ),
+          },
+        };
+
+      case 'review':
+        return {
+          'defaultFile': 'src/services/PaymentService.ts',
+          'fileTree': {
+            'src': FileNode(
+              name: 'src',
+              isDirectory: true,
+              children: {
+                'services': FileNode(
+                  name: 'services',
+                  isDirectory: true,
+                  children: {
+                    'PaymentService.ts': FileNode(
+                      name: 'PaymentService.ts',
+                      content: _reviewPaymentCode,
+                      language: 'typescript',
+                    ),
+                    'UserService.ts': FileNode(
+                      name: 'UserService.ts',
+                      content: _reviewUserServiceCode,
+                      language: 'typescript',
+                    ),
+                  },
+                ),
+                'utils': FileNode(
+                  name: 'utils',
+                  isDirectory: true,
+                  children: {
+                    'validation.ts': FileNode(
+                      name: 'validation.ts',
+                      content: _reviewValidationCode,
+                      language: 'typescript',
+                    ),
+                  },
+                ),
+              },
+            ),
+            'REVIEW_NOTES.md': FileNode(
+              name: 'REVIEW_NOTES.md',
+              content: _reviewNotesCode,
+              language: 'markdown',
+            ),
+          },
+        };
+
+      case 'refactor':
+      default:
+        return {
+          'defaultFile': 'src/legacy/DataProcessor.ts',
+          'fileTree': {
+            'src': FileNode(
+              name: 'src',
+              isDirectory: true,
+              children: {
+                'legacy': FileNode(
+                  name: 'legacy',
+                  isDirectory: true,
+                  children: {
+                    'DataProcessor.ts': FileNode(
+                      name: 'DataProcessor.ts',
+                      content: _refactorLegacyCode,
+                      language: 'typescript',
+                    ),
+                    'helpers.ts': FileNode(
+                      name: 'helpers.ts',
+                      content: _refactorHelpersCode,
+                      language: 'typescript',
+                    ),
+                  },
+                ),
+                'refactored': FileNode(
+                  name: 'refactored',
+                  isDirectory: true,
+                  children: {
+                    'DataProcessor.ts': FileNode(
+                      name: 'DataProcessor.ts',
+                      content: _refactorNewCode,
+                      language: 'typescript',
+                    ),
+                  },
+                ),
+              },
+            ),
+            'package.json': FileNode(
+              name: 'package.json',
+              content: _refactorPackageJson,
+              language: 'json',
+            ),
+          },
+        };
+    }
   }
 
   void _initializeAnimations() {
@@ -203,15 +409,29 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
     });
   }
 
+  // VS Code dark theme colors
+  static const _editorBg = Color(0xFF1E1E1E);
+  static const _tabBarBg = Color(0xFF252526);
+  static const _sidebarBg = Color(0xFF252526);
+  static const _panelBg = Color(0xFF1E1E1E);
+  static const _borderColor = Color(0xFF3C3C3C);
+  static const _textColor = Color(0xFFD4D4D4);
+  static const _textMuted = Color(0xFF858585);
+  static const _activeTabBg = Color(0xFF1E1E1E);
+  static const _highlightBlue = Color(0xFF569CD6);
+  static const _highlightGreen = Color(0xFF4EC9B0);
+  static const _highlightOrange = Color(0xFFCE9178);
+  static const _highlightYellow = Color(0xFFDCDCAA);
+
   @override
   Widget build(BuildContext context) {
     final colors = ThemeColors(context);
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Container(
         decoration: BoxDecoration(
-          color: colors.background,
+          color: _editorBg,
           borderRadius: BorderRadius.circular(BorderRadiusTokens.lg),
         ),
         child: Column(
@@ -258,21 +478,21 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
         vertical: SpacingTokens.sm,
       ),
       decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(bottom: BorderSide(color: colors.border)),
-        borderRadius: BorderRadius.only(
+        color: _tabBarBg,
+        border: Border(bottom: BorderSide(color: _borderColor)),
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(BorderRadiusTokens.lg),
           topRight: Radius.circular(BorderRadiusTokens.lg),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.code, color: colors.primary, size: 20),
+          Icon(Icons.code, color: _highlightBlue, size: 20),
           const SizedBox(width: SpacingTokens.sm),
           Text(
             'AI Code Editor',
             style: TextStyles.bodyLarge.copyWith(
-              color: colors.onSurface,
+              color: _textColor,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -284,23 +504,23 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                 vertical: SpacingTokens.xs,
               ),
               decoration: BoxDecoration(
-                color: colors.accent.withOpacity(0.1),
+                color: _highlightGreen.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
-                border: Border.all(color: colors.accent, width: 1),
+                border: Border.all(color: _highlightGreen, width: 1),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.touch_app,
                     size: 14,
-                    color: colors.accent,
+                    color: _highlightGreen,
                   ),
                   const SizedBox(width: SpacingTokens.xs),
                   Text(
                     'Selected: ${widget.actionContext}',
                     style: TextStyles.bodySmall.copyWith(
-                      color: colors.accent,
+                      color: _highlightGreen,
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
@@ -310,7 +530,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
             ),
           ],
           const Spacer(),
-          
+
           // MCP integration indicator
           Container(
             padding: const EdgeInsets.symmetric(
@@ -318,7 +538,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
               vertical: SpacingTokens.xs,
             ),
             decoration: BoxDecoration(
-              color: colors.success.withOpacity(0.1),
+              color: _highlightGreen.withOpacity(0.15),
               borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
             ),
             child: Row(
@@ -327,8 +547,8 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: BoxDecoration(
-                    color: colors.success,
+                  decoration: const BoxDecoration(
+                    color: _highlightGreen,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -336,15 +556,15 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                 Text(
                   'MCP Git Connected',
                   style: TextStyles.bodySmall.copyWith(
-                    color: colors.success,
+                    color: _highlightGreen,
                   ),
                 ),
               ],
             ),
           ),
-          
+
           const SizedBox(width: SpacingTokens.md),
-          
+
           // Preview toggle
           IconButton(
             onPressed: () {
@@ -355,12 +575,12 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
             },
             icon: Icon(
               Icons.preview,
-              color: _showPreview ? colors.primary : colors.onSurfaceVariant,
+              color: _showPreview ? _highlightBlue : _textMuted,
               size: 20,
             ),
             tooltip: 'Toggle Preview',
           ),
-          
+
           // Git panel toggle
           IconButton(
             onPressed: () {
@@ -368,16 +588,16 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
             },
             icon: Icon(
               Icons.source,
-              color: _showGitPanel ? colors.primary : colors.onSurfaceVariant,
+              color: _showGitPanel ? _highlightBlue : _textMuted,
               size: 20,
             ),
             tooltip: 'Toggle Git Panel',
           ),
-          
+
           if (widget.onClose != null) ...[
             IconButton(
               onPressed: widget.onClose,
-              icon: Icon(Icons.close, color: colors.onSurfaceVariant, size: 20),
+              icon: const Icon(Icons.close, color: _textMuted, size: 20),
               tooltip: 'Close Editor',
             ),
           ],
@@ -389,22 +609,22 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
   Widget _buildTabBar(ThemeColors colors) {
     return Container(
       height: 36,
-      decoration: BoxDecoration(
-        color: colors.surface.withOpacity(0.5),
-        border: Border(bottom: BorderSide(color: colors.border.withOpacity(0.5))),
+      decoration: const BoxDecoration(
+        color: _tabBarBg,
+        border: Border(bottom: BorderSide(color: _borderColor)),
       ),
       child: Row(
         children: [
           ..._openFiles.map((path) {
             final isActive = path == _currentFilePath;
             final fileName = path.split('/').last;
-            
+
             return Container(
               decoration: BoxDecoration(
-                color: isActive ? colors.surface : null,
+                color: isActive ? _activeTabBg : null,
                 border: isActive
-                    ? Border(
-                        bottom: BorderSide(color: colors.primary, width: 2),
+                    ? const Border(
+                        bottom: BorderSide(color: _highlightBlue, width: 2),
                       )
                     : null,
               ),
@@ -423,13 +643,13 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                         Icon(
                           _getFileIcon(fileName),
                           size: 14,
-                          color: isActive ? colors.primary : colors.onSurfaceVariant,
+                          color: isActive ? _highlightYellow : _textMuted,
                         ),
                         const SizedBox(width: SpacingTokens.xs),
                         Text(
                           fileName,
                           style: TextStyles.bodySmall.copyWith(
-                            color: isActive ? colors.onSurface : colors.onSurfaceVariant,
+                            color: isActive ? _textColor : _textMuted,
                           ),
                         ),
                         if (_hasChanges && isActive) ...[
@@ -437,8 +657,8 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                           Container(
                             width: 6,
                             height: 6,
-                            decoration: BoxDecoration(
-                              color: colors.warning,
+                            decoration: const BoxDecoration(
+                              color: _highlightOrange,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -459,9 +679,9 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
   Widget _buildFileTree(ThemeColors colors) {
     return Container(
       width: 200,
-      decoration: BoxDecoration(
-        color: colors.surface.withOpacity(0.3),
-        border: Border(right: BorderSide(color: colors.border.withOpacity(0.5))),
+      decoration: const BoxDecoration(
+        color: _sidebarBg,
+        border: Border(right: BorderSide(color: _borderColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,7 +691,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
             child: Text(
               'PROJECT FILES',
               style: TextStyles.bodySmall.copyWith(
-                color: colors.onSurfaceVariant,
+                color: _textMuted,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),
@@ -494,11 +714,11 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
     ThemeColors colors,
   ) {
     final widgets = <Widget>[];
-    
+
     for (final entry in nodes.entries) {
       final node = entry.value;
       final indent = depth * SpacingTokens.md;
-      
+
       widgets.add(
         Material(
           color: Colors.transparent,
@@ -521,14 +741,14 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                         : _getFileIcon(node.name),
                     size: 16,
                     color: node.isDirectory
-                        ? colors.warning
-                        : colors.primary.withOpacity(0.8),
+                        ? _highlightOrange
+                        : _highlightBlue,
                   ),
                   const SizedBox(width: SpacingTokens.xs),
                   Text(
                     node.name,
                     style: TextStyles.bodySmall.copyWith(
-                      color: colors.onSurfaceVariant,
+                      color: _textColor,
                     ),
                   ),
                 ],
@@ -537,12 +757,12 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
           ),
         ),
       );
-      
+
       if (node.isDirectory && node.children != null) {
         widgets.addAll(_buildFileTreeNodes(node.children!, depth + 1, colors));
       }
     }
-    
+
     return widgets;
   }
 
@@ -556,7 +776,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
 
   Widget _buildCodeEditor(ThemeColors colors) {
     return Container(
-      color: colors.background,
+      color: _editorBg,
       child: Column(
         children: [
           // Breadcrumb
@@ -565,9 +785,9 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
               horizontal: SpacingTokens.md,
               vertical: SpacingTokens.sm,
             ),
-            decoration: BoxDecoration(
-              color: colors.surface.withOpacity(0.3),
-              border: Border(bottom: BorderSide(color: colors.border.withOpacity(0.3))),
+            decoration: const BoxDecoration(
+              color: _tabBarBg,
+              border: Border(bottom: BorderSide(color: _borderColor)),
             ),
             child: Row(
               children: [
@@ -576,7 +796,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                     Text(
                       part,
                       style: TextStyles.bodySmall.copyWith(
-                        color: colors.onSurfaceVariant,
+                        color: _textMuted,
                       ),
                     ),
                     if (part != _currentFilePath.split('/').last)
@@ -585,7 +805,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                         child: Icon(
                           Icons.chevron_right,
                           size: 14,
-                          color: colors.onSurfaceVariant.withOpacity(0.5),
+                          color: _textMuted.withOpacity(0.5),
                         ),
                       ),
                   ],
@@ -593,70 +813,75 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
               ],
             ),
           ),
-          
+
           // Code area
           Expanded(
             child: Stack(
               children: [
-                // Line numbers and code
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Line numbers
-                    Container(
-                      width: 50,
-                      padding: const EdgeInsets.only(
-                        right: SpacingTokens.sm,
-                        top: SpacingTokens.md,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colors.surface.withOpacity(0.2),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: List.generate(
-                          _codeController.text.split('\n').length,
-                          (index) => Container(
-                            height: 20,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              '${index + 1}',
-                              style: TextStyles.bodySmall.copyWith(
-                                color: colors.onSurfaceVariant.withOpacity(0.5),
-                                fontFamily: 'monospace',
-                                fontSize: 12,
+                // Line numbers and code - wrapped in SingleChildScrollView to prevent RenderFlex overflow
+                SingleChildScrollView(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Line numbers
+                      Container(
+                        width: 50,
+                        padding: const EdgeInsets.only(
+                          right: SpacingTokens.sm,
+                          top: SpacingTokens.md,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _sidebarBg.withOpacity(0.5),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: List.generate(
+                            _codeController.text.split('\n').length,
+                            (index) => Container(
+                              height: 20,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                '${index + 1}',
+                                style: TextStyles.bodySmall.copyWith(
+                                  color: _textMuted.withOpacity(0.6),
+                                  fontFamily: 'monospace',
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    
-                    // Code editor
-                    Expanded(
-                      child: TextField(
-                        controller: _codeController,
-                        maxLines: null,
-                        style: TextStyles.bodyMedium.copyWith(
-                          color: colors.onSurface,
-                          fontFamily: 'monospace',
-                          fontSize: 13,
-                          height: 1.5,
+
+                      // Code editor
+                      Expanded(
+                        child: TextField(
+                          controller: _codeController,
+                          maxLines: null,
+                          cursorColor: _highlightBlue,
+                          style: const TextStyle(
+                            color: _textColor,
+                            fontFamily: 'monospace',
+                            fontSize: 13,
+                            height: 1.5,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.all(SpacingTokens.md),
+                            fillColor: Colors.transparent,
+                            filled: true,
+                          ),
+                          onChanged: (value) {
+                            if (!_hasChanges && value != _currentContent) {
+                              setState(() => _hasChanges = true);
+                            }
+                          },
                         ),
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.all(SpacingTokens.md),
-                        ),
-                        onChanged: (value) {
-                          if (!_hasChanges && value != _currentContent) {
-                            setState(() => _hasChanges = true);
-                          }
-                        },
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                
+
                 // AI suggestion overlay (demo)
                 if (_showAISuggestion)
                   Positioned(
@@ -666,25 +891,25 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                     child: Container(
                       padding: const EdgeInsets.all(SpacingTokens.md),
                       decoration: BoxDecoration(
-                        color: colors.primary.withOpacity(0.1),
+                        color: _highlightBlue.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(BorderRadiusTokens.md),
-                        border: Border.all(color: colors.primary.withOpacity(0.3)),
+                        border: Border.all(color: _highlightBlue.withOpacity(0.4)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.auto_awesome,
                                 size: 16,
-                                color: colors.primary,
+                                color: _highlightBlue,
                               ),
                               const SizedBox(width: SpacingTokens.xs),
                               Text(
                                 'AI Suggestion',
                                 style: TextStyles.bodySmall.copyWith(
-                                  color: colors.primary,
+                                  color: _highlightBlue,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -692,7 +917,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                               Text(
                                 'Tab to accept',
                                 style: TextStyles.bodySmall.copyWith(
-                                  color: colors.onSurfaceVariant,
+                                  color: _textMuted,
                                 ),
                               ),
                             ],
@@ -701,13 +926,13 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                           Container(
                             padding: const EdgeInsets.all(SpacingTokens.sm),
                             decoration: BoxDecoration(
-                              color: colors.surface,
+                              color: const Color(0xFF2D2D2D),
                               borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
                             ),
                             child: Text(
                               '// Add error handling for API calls\ntry {\n  const response = await fetchTasks();\n  setTasks(response.data);\n} catch (error) {\n  console.error("Failed to fetch tasks:", error);\n  setError(error.message);\n}',
                               style: TextStyles.bodySmall.copyWith(
-                                color: colors.onSurface,
+                                color: _textColor,
                                 fontFamily: 'monospace',
                                 fontSize: 12,
                               ),
@@ -730,9 +955,9 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
   Widget _buildGitPanel(ThemeColors colors) {
     return Container(
       width: 300,
-      decoration: BoxDecoration(
-        color: colors.surface.withOpacity(0.5),
-        border: Border(left: BorderSide(color: colors.border)),
+      decoration: const BoxDecoration(
+        color: _sidebarBg,
+        border: Border(left: BorderSide(color: _borderColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -740,24 +965,24 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
           // Git panel header
           Container(
             padding: const EdgeInsets.all(SpacingTokens.md),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: colors.border.withOpacity(0.5))),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: _borderColor)),
             ),
             child: Row(
               children: [
-                Icon(Icons.source, color: colors.primary, size: 20),
+                const Icon(Icons.source, color: _highlightBlue, size: 20),
                 const SizedBox(width: SpacingTokens.sm),
                 Text(
                   'Git Integration',
                   style: TextStyles.bodyMedium.copyWith(
-                    color: colors.onSurface,
+                    color: _textColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
           ),
-          
+
           // Quick actions
           Container(
             padding: const EdgeInsets.all(SpacingTokens.sm),
@@ -779,14 +1004,14 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
               ],
             ),
           ),
-          
+
           // Git log
           Expanded(
             child: Container(
               margin: const EdgeInsets.all(SpacingTokens.sm),
               padding: const EdgeInsets.all(SpacingTokens.sm),
               decoration: BoxDecoration(
-                color: colors.background,
+                color: _editorBg,
                 borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
               ),
               child: ListView.builder(
@@ -794,13 +1019,13 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                 itemBuilder: (context, index) {
                   final log = _gitLog[index];
                   final isCommand = log.startsWith('>');
-                  
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
                     child: Text(
                       log,
                       style: TextStyles.bodySmall.copyWith(
-                        color: isCommand ? colors.primary : colors.onSurfaceVariant,
+                        color: isCommand ? _highlightGreen : _textMuted,
                         fontFamily: 'monospace',
                         fontSize: 11,
                       ),
@@ -822,7 +1047,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
     ThemeColors colors,
   ) {
     return Material(
-      color: colors.primary.withOpacity(0.1),
+      color: _highlightBlue.withOpacity(0.15),
       borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
       child: InkWell(
         onTap: onTap,
@@ -835,12 +1060,12 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: colors.primary),
+              Icon(icon, size: 14, color: _highlightBlue),
               const SizedBox(width: SpacingTokens.xs),
               Text(
                 label,
                 style: TextStyles.bodySmall.copyWith(
-                  color: colors.primary,
+                  color: _highlightBlue,
                 ),
               ),
             ],
@@ -854,9 +1079,9 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
     return Container(
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
-      decoration: BoxDecoration(
-        color: colors.surface.withOpacity(0.8),
-        border: Border(top: BorderSide(color: colors.border)),
+      decoration: const BoxDecoration(
+        color: _tabBarBg,
+        border: Border(top: BorderSide(color: _borderColor)),
       ),
       child: Row(
         children: [
@@ -864,54 +1089,54 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.account_tree, size: 12, color: colors.onSurfaceVariant),
+              const Icon(Icons.account_tree, size: 12, color: _textMuted),
               const SizedBox(width: SpacingTokens.xs),
               Text(
                 'feature/ai-integration',
                 style: TextStyles.bodySmall.copyWith(
-                  color: colors.onSurfaceVariant,
+                  color: _textMuted,
                   fontSize: 11,
                 ),
               ),
             ],
           ),
-          
+
           const SizedBox(width: SpacingTokens.lg),
-          
+
           // Language mode
           Text(
             'TypeScript React',
             style: TextStyles.bodySmall.copyWith(
-              color: colors.onSurfaceVariant,
+              color: _textMuted,
               fontSize: 11,
             ),
           ),
-          
+
           const Spacer(),
-          
+
           // AI status
           if (_showAISuggestion)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.auto_awesome, size: 12, color: colors.primary),
+                const Icon(Icons.auto_awesome, size: 12, color: _highlightBlue),
                 const SizedBox(width: SpacingTokens.xs),
                 Text(
                   'AI Ready',
                   style: TextStyles.bodySmall.copyWith(
-                    color: colors.primary,
+                    color: _highlightBlue,
                     fontSize: 11,
                   ),
                 ),
                 const SizedBox(width: SpacingTokens.lg),
               ],
             ),
-          
+
           // Cursor position
           Text(
             'Ln 12, Col 24',
             style: TextStyles.bodySmall.copyWith(
-              color: colors.onSurfaceVariant,
+              color: _textMuted,
               fontSize: 11,
             ),
           ),
@@ -935,7 +1160,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
 
   Widget _buildPreview(ThemeColors colors) {
     return Container(
-      color: colors.surface,
+      color: _sidebarBg,
       child: Column(
         children: [
           // Browser-like header
@@ -944,9 +1169,9 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
               horizontal: SpacingTokens.md,
               vertical: SpacingTokens.sm,
             ),
-            decoration: BoxDecoration(
-              color: colors.background,
-              border: Border(bottom: BorderSide(color: colors.border)),
+            decoration: const BoxDecoration(
+              color: _tabBarBg,
+              border: Border(bottom: BorderSide(color: _borderColor)),
             ),
             child: Row(
               children: [
@@ -954,28 +1179,28 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.arrow_back, size: 16, color: colors.onSurfaceVariant.withOpacity(0.5)),
+                    Icon(Icons.arrow_back, size: 16, color: _textMuted.withOpacity(0.5)),
                     const SizedBox(width: SpacingTokens.xs),
-                    Icon(Icons.arrow_forward, size: 16, color: colors.onSurfaceVariant.withOpacity(0.5)),
+                    Icon(Icons.arrow_forward, size: 16, color: _textMuted.withOpacity(0.5)),
                     const SizedBox(width: SpacingTokens.sm),
                     AnimatedBuilder(
                       animation: _previewRefreshController,
                       builder: (context, child) {
                         return Transform.rotate(
                           angle: _previewRefreshController.value * 2 * 3.14159,
-                          child: Icon(
+                          child: const Icon(
                             Icons.refresh,
                             size: 16,
-                            color: colors.onSurfaceVariant,
+                            color: _textMuted,
                           ),
                         );
                       },
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(width: SpacingTokens.md),
-                
+
                 // URL bar
                 Expanded(
                   child: Container(
@@ -984,26 +1209,26 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                       vertical: SpacingTokens.xs,
                     ),
                     decoration: BoxDecoration(
-                      color: colors.surfaceVariant,
+                      color: _editorBg,
                       borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.lock, size: 12, color: colors.onSurfaceVariant),
+                        const Icon(Icons.lock, size: 12, color: _highlightGreen),
                         const SizedBox(width: SpacingTokens.xs),
                         Text(
                           'localhost:3000',
                           style: TextStyles.bodySmall.copyWith(
-                            color: colors.onSurfaceVariant,
+                            color: _textMuted,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(width: SpacingTokens.md),
-                
+
                 // Status
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -1011,7 +1236,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                     vertical: SpacingTokens.xs,
                   ),
                   decoration: BoxDecoration(
-                    color: colors.success.withOpacity(0.1),
+                    color: _highlightGreen.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
                   ),
                   child: Row(
@@ -1020,8 +1245,8 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                       Container(
                         width: 6,
                         height: 6,
-                        decoration: BoxDecoration(
-                          color: colors.success,
+                        decoration: const BoxDecoration(
+                          color: _highlightGreen,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -1029,7 +1254,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
                       Text(
                         'Live',
                         style: TextStyles.bodySmall.copyWith(
-                          color: colors.success,
+                          color: _highlightGreen,
                           fontSize: 11,
                         ),
                       ),
@@ -1039,7 +1264,7 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
               ],
             ),
           ),
-          
+
           // Preview content
           Expanded(
             child: Container(
@@ -1251,130 +1476,526 @@ class _DemoCodeEditorState extends State<DemoCodeEditor>
     );
   }
 
-  // Sample code content
-  static const _dashboardCode = '''import React from 'react';
-import { TaskCard } from './TaskCard';
-import { useAIAssistant } from '../hooks/useAIAssistant';
+  // ============ REFACTOR CODE SAMPLES ============
+  static const _refactorLegacyCode = '''// Legacy DataProcessor - needs refactoring
+class DataProcessor {
+  data: any[] = [];
 
-export const Dashboard: React.FC = () => {
-  const [tasks, setTasks] = useState([]);
-  const { suggestions, analyze } = useAIAssistant();
-  
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-  
-  const fetchTasks = async () => {
-    const response = await fetch('/api/tasks');
-    const data = await response.json();
-    setTasks(data);
-    analyze(data);
-  };
-  
-  return (
-    <div className="dashboard">
-      <h1>AI-Powered Task Management</h1>
-      <div className="task-grid">
-        {tasks.map(task => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-      </div>
-      {suggestions && (
-        <div className="ai-suggestions">
-          <h3>AI Recommendations</h3>
-          {suggestions.map(s => <p key={s.id}>{s.text}</p>)}
-        </div>
-      )}
-    </div>
-  );
-};''';
-
-  static const _taskCardCode = '''import React from 'react';
-
-interface TaskCardProps {
-  task: {
-    id: string;
-    title: string;
-    status: string;
-    priority: number;
-  };
-}
-
-export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
-  return (
-    <div className="task-card">
-      <h3>{task.title}</h3>
-      <span className={`status \${task.status}`}>\{task.status\}</span>
-      <span className="priority">Priority: {task.priority}</span>
-    </div>
-  );
-};''';
-
-  static const _apiClientCode = '''export class ApiClient {
-  private baseUrl = process.env.REACT_APP_API_URL;
-  
-  async fetchTasks() {
-    const response = await fetch(`\${this.baseUrl}/tasks`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch tasks');
+  processData(input: any) {
+    // TODO: This function is too long and complex
+    var result = [];
+    for (var i = 0; i < input.length; i++) {
+      var item = input[i];
+      if (item.type == 'user') {
+        if (item.status == 'active') {
+          result.push({
+            id: item.id,
+            name: item.firstName + ' ' + item.lastName,
+            email: item.email
+          });
+        }
+      }
     }
-    return response.json();
+    this.data = result;
+    return result;
   }
-  
-  async updateTask(id: string, updates: Partial<Task>) {
-    const response = await fetch(`\${this.baseUrl}/tasks/\${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
+
+  // Callback hell - needs async/await
+  fetchAndProcess(url: string, callback: Function) {
+    fetch(url).then(function(res) {
+      res.json().then(function(data) {
+        callback(null, data);
+      });
+    }).catch(function(err) {
+      callback(err, null);
     });
-    return response.json();
   }
 }''';
 
-  static const _appCode = '''import React from 'react';
-import { Dashboard } from './components/Dashboard';
-import './App.css';
-
-function App() {
-  return (
-    <div className="App">
-      <Dashboard />
-    </div>
-  );
+  static const _refactorHelpersCode = '''// Legacy helpers with poor typing
+function formatDate(d: any): string {
+  return d.getMonth() + '/' + d.getDate() + '/' + d.getFullYear();
 }
 
-export default App;''';
+function validateEmail(email: any) {
+  var re = /\\S+@\\S+\\.\\S+/;
+  return re.test(email);
+}
 
-  static const _packageJsonCode = '''{
-  "name": "ai-task-manager",
+function deepClone(obj: any) {
+  return JSON.parse(JSON.stringify(obj));
+}''';
+
+  static const _refactorNewCode = '''// Refactored DataProcessor with modern patterns
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: 'active' | 'inactive';
+  type: 'user' | 'admin';
+}
+
+interface ProcessedUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+class DataProcessor {
+  private data: ProcessedUser[] = [];
+
+  processUsers(users: User[]): ProcessedUser[] {
+    const activeUsers = users
+      .filter(user => user.type === 'user' && user.status === 'active')
+      .map(this.transformUser);
+
+    this.data = activeUsers;
+    return activeUsers;
+  }
+
+  private transformUser = (user: User): ProcessedUser => ({
+    id: user.id,
+    name: \`\${user.firstName} \${user.lastName}\`,
+    email: user.email,
+  });
+
+  async fetchAndProcess(url: string): Promise<ProcessedUser[]> {
+    const response = await fetch(url);
+    const data = await response.json();
+    return this.processUsers(data);
+  }
+}''';
+
+  static const _refactorPackageJson = '''{
+  "name": "legacy-refactor-project",
+  "version": "2.0.0",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/",
+    "test": "jest"
+  }
+}''';
+
+  // ============ API CODE SAMPLES ============
+  static const _apiRoutesCode = '''import { Router } from 'express';
+import { authenticate } from './middleware';
+import { validateUser } from './validators';
+
+const router = Router();
+
+// GET /api/users
+router.get('/users', authenticate, async (req, res) => {
+  const users = await UserService.findAll();
+  res.json({ data: users, count: users.length });
+});
+
+// POST /api/users
+router.post('/users', authenticate, validateUser, async (req, res) => {
+  const user = await UserService.create(req.body);
+  res.status(201).json({ data: user });
+});
+
+// GET /api/users/:id
+router.get('/users/:id', authenticate, async (req, res) => {
+  const user = await UserService.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: 'Not found' });
+  res.json({ data: user });
+});
+
+// PUT /api/users/:id
+router.put('/users/:id', authenticate, validateUser, async (req, res) => {
+  const user = await UserService.update(req.params.id, req.body);
+  res.json({ data: user });
+});
+
+// DELETE /api/users/:id
+router.delete('/users/:id', authenticate, async (req, res) => {
+  await UserService.delete(req.params.id);
+  res.status(204).send();
+});
+
+export default router;''';
+
+  static const _apiMiddlewareCode = '''import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+
+export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+export const rateLimit = (maxRequests: number, windowMs: number) => {
+  const requests = new Map();
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    const ip = req.ip;
+    const now = Date.now();
+    // Rate limiting logic here
+    next();
+  };
+};''';
+
+  static const _apiValidatorsCode = '''import { body, validationResult } from 'express-validator';
+
+export const validateUser = [
+  body('email').isEmail().normalizeEmail(),
+  body('password').isLength({ min: 8 }),
+  body('name').trim().notEmpty(),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  }
+];''';
+
+  static const _apiUserModelCode = '''export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'user' | 'admin';
+  createdAt: Date;
+  updatedAt: Date;
+}''';
+
+  static const _apiPackageJson = '''{
+  "name": "rest-api-service",
   "version": "1.0.0",
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^5.0.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test"
+    "express": "^4.18.0",
+    "jsonwebtoken": "^9.0.0"
   }
 }''';
 
-  static const _readmeCode = '''# AI Task Manager
+  // ============ TEST CODE SAMPLES ============
+  static const _testAuthCode = '''import { describe, it, expect, beforeEach } from '@jest/globals';
+import { AuthService } from '../src/auth';
 
-An intelligent task management system powered by AI.
+describe('AuthService', () => {
+  let authService: AuthService;
 
-## Features
-- Smart task prioritization
-- AI-driven insights
-- Real-time collaboration
-- Automated workflows
+  beforeEach(() => {
+    authService = new AuthService();
+  });
 
-## Getting Started
-\`\`\`bash
-npm install
-npm start
-\`\`\`
+  describe('login', () => {
+    it('should return token for valid credentials', async () => {
+      const result = await authService.login('user@test.com', 'password123');
+      expect(result.token).toBeDefined();
+      expect(result.user.email).toBe('user@test.com');
+    });
+
+    it('should throw error for invalid credentials', async () => {
+      await expect(
+        authService.login('user@test.com', 'wrongpassword')
+      ).rejects.toThrow('Invalid credentials');
+    });
+  });
+
+  describe('validateToken', () => {
+    it('should return true for valid token', () => {
+      const token = authService.generateToken({ id: '123' });
+      expect(authService.validateToken(token)).toBe(true);
+    });
+
+    it('should return false for expired token', () => {
+      const expiredToken = 'expired.jwt.token';
+      expect(authService.validateToken(expiredToken)).toBe(false);
+    });
+  });
+});''';
+
+  static const _testApiCode = '''import request from 'supertest';
+import app from '../src/app';
+
+describe('User API', () => {
+  describe('GET /api/users', () => {
+    it('should return all users', async () => {
+      const res = await request(app)
+        .get('/api/users')
+        .set('Authorization', 'Bearer valid-token');
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeInstanceOf(Array);
+    });
+  });
+
+  describe('POST /api/users', () => {
+    it('should create a new user', async () => {
+      const userData = { name: 'John', email: 'john@test.com' };
+      const res = await request(app)
+        .post('/api/users')
+        .send(userData);
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.email).toBe(userData.email);
+    });
+  });
+});''';
+
+  static const _testUtilsCode = '''import { formatDate, validateEmail, slugify } from '../src/utils';
+
+describe('Utility Functions', () => {
+  describe('formatDate', () => {
+    it('should format date correctly', () => {
+      const date = new Date('2024-01-15');
+      expect(formatDate(date)).toBe('January 15, 2024');
+    });
+  });
+
+  describe('validateEmail', () => {
+    it('should return true for valid email', () => {
+      expect(validateEmail('test@example.com')).toBe(true);
+    });
+
+    it('should return false for invalid email', () => {
+      expect(validateEmail('invalid-email')).toBe(false);
+    });
+  });
+
+  describe('slugify', () => {
+    it('should convert string to slug', () => {
+      expect(slugify('Hello World!')).toBe('hello-world');
+    });
+  });
+});''';
+
+  static const _testAuthSourceCode = '''export class AuthService {
+  async login(email: string, password: string) {
+    // Authentication logic
+  }
+
+  generateToken(payload: object): string {
+    // Token generation
+  }
+
+  validateToken(token: string): boolean {
+    // Token validation
+  }
+}''';
+
+  static const _jestConfigCode = '''module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  roots: ['<rootDir>/tests'],
+  coverageThreshold: {
+    global: { branches: 80, functions: 80, lines: 80 }
+  }
+};''';
+
+  // ============ DEVOPS CODE SAMPLES ============
+  static const _devopsCiCode = '''name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:coverage
+
+      - uses: codecov/codecov-action@v3
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: dist/''';
+
+  static const _devopsDeployCode = '''name: Deploy to Production
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: \${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: \${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \\
+            --cluster production \\
+            --service api-service \\
+            --force-new-deployment''';
+
+  static const _dockerfileCode = '''FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 3000
+CMD ["node", "dist/index.js"]''';
+
+  static const _dockerComposeCode = '''version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://db:5432/app
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  postgres_data:''';
+
+  static const _terraformCode = '''provider "aws" {
+  region = var.aws_region
+}
+
+resource "aws_ecs_cluster" "main" {
+  name = "\${var.project}-cluster"
+}
+
+resource "aws_ecs_service" "api" {
+  name            = "api-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.api.arn
+  desired_count   = var.desired_count
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.api.arn
+    container_name   = "api"
+    container_port   = 3000
+  }
+}''';
+
+  // ============ CODE REVIEW SAMPLES ============
+  static const _reviewPaymentCode = '''// PaymentService.ts - Code Review Requested
+export class PaymentService {
+  // REVIEW: Should we add retry logic here?
+  async processPayment(amount: number, userId: string) {
+    const user = await this.userRepo.findById(userId);
+
+    // TODO: Add input validation
+    const transaction = await this.stripe.charges.create({
+      amount: amount * 100,
+      currency: 'usd',
+      customer: user.stripeCustomerId,
+    });
+
+    // FIXME: This could fail silently
+    await this.notificationService.sendReceipt(user.email, transaction);
+
+    return transaction;
+  }
+
+  // REVIEW: Consider caching frequently accessed plans
+  async getSubscriptionPlans() {
+    return await this.stripe.plans.list();
+  }
+}''';
+
+  static const _reviewUserServiceCode = '''// UserService.ts
+export class UserService {
+  // REVIEW: N+1 query issue here
+  async getUsersWithOrders() {
+    const users = await this.userRepo.findAll();
+    for (const user of users) {
+      user.orders = await this.orderRepo.findByUserId(user.id);
+    }
+    return users;
+  }
+
+  // TODO: Add password complexity validation
+  async updatePassword(userId: string, newPassword: string) {
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await this.userRepo.update(userId, { password: hashed });
+  }
+}''';
+
+  static const _reviewValidationCode = '''// validation.ts
+// REVIEW: Consider using a validation library like Zod
+
+export function validateEmail(email: string): boolean {
+  // Basic regex - might miss edge cases
+  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+\$/.test(email);
+}
+
+export function validatePassword(password: string): string[] {
+  const errors: string[] = [];
+  if (password.length < 8) errors.push('Min 8 characters');
+  // TODO: Add more rules
+  return errors;
+}''';
+
+  static const _reviewNotesCode = '''# Code Review Notes
+
+## Summary
+PR #142: Payment Processing Updates
+
+## Issues Found
+1. **PaymentService.ts:12** - No input validation
+2. **PaymentService.ts:18** - Silent failure on notification
+3. **UserService.ts:4** - N+1 query performance issue
+
+## Recommendations
+- Add Zod validation schemas
+- Implement retry mechanism for external API calls
+- Use eager loading for user orders query
+
+## Approved with Changes
+Reviewer: @senior-dev
 ''';
 }
 

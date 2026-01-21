@@ -328,7 +328,7 @@ class _AsmblDesktopAppState extends ConsumerState<AsmblDesktopApp> {
 
 // Create router outside of the widget to avoid global key issues
 final _router = GoRouter(
- initialLocation: AppRoutes.home,
+ initialLocation: AppRoutes.demoOnboarding, // MVP: Start with demo onboarding
  redirect: (context, state) {
    // We'll handle setup check in HomeScreen instead
    return null;
@@ -396,7 +396,18 @@ final _router = GoRouter(
  builder: (context, state) {
    final agentTypeParam = state.uri.queryParameters['agentType'];
    final agentType = agentTypeParam != null ? int.tryParse(agentTypeParam) : null;
-   return UnifiedShowcaseDemo(selectedAgentType: agentType);
+   final flowType = state.uri.queryParameters['flowType'];
+   // Parse confidence settings from onboarding
+   final confidenceParam = state.uri.queryParameters['confidence'];
+   final confidenceThreshold = confidenceParam != null ? (int.tryParse(confidenceParam) ?? 80) / 100.0 : 0.8;
+   final humanVerifyParam = state.uri.queryParameters['humanVerify'];
+   final humanVerificationEnabled = humanVerifyParam != '0';
+   return UnifiedShowcaseDemo(
+     selectedAgentType: agentType,
+     selectedDeliverable: flowType,
+     confidenceThreshold: confidenceThreshold,
+     humanVerificationEnabled: humanVerificationEnabled,
+   );
  },
  ),
  GoRoute(
@@ -404,11 +415,15 @@ final _router = GoRouter(
  builder: (context, state) {
   final agentTypeParam = state.uri.queryParameters['agentType'];
   final agentType = agentTypeParam != null ? int.tryParse(agentTypeParam) : 0;
-  
+
   return ControlledOnboardingFlow(
     selectedAgentType: agentType,
    onComplete: (data) {
-     context.go('${AppRoutes.demoUnified}?agentType=$agentType');
+     // Pass agentType, flowType, and confidence settings to the unified demo
+     final encodedFlowType = Uri.encodeComponent(data.flowType);
+     final confidenceThreshold = (data.confidenceThreshold * 100).toInt();
+     final humanVerification = data.humanVerificationEnabled ? '1' : '0';
+     context.go('${AppRoutes.demoUnified}?agentType=$agentType&flowType=$encodedFlowType&confidence=$confidenceThreshold&humanVerify=$humanVerification');
    },
  );
 },
@@ -711,6 +726,7 @@ class _RecentConversationsSection extends ConsumerWidget {
  ref.read(selectedConversationIdProvider.notifier).state = conversation.id;
  context.go(AppRoutes.chat);
  },
+ onDelete: () => _showDeleteConfirmation(context, ref, conversation),
  ),
  )),
  if (conversations.length > 5) ...[
@@ -762,6 +778,38 @@ class _RecentConversationsSection extends ConsumerWidget {
  ),
  ],
  ),
+ ),
+ );
+ }
+
+ void _showDeleteConfirmation(BuildContext context, WidgetRef ref, Conversation conversation) {
+ final colors = ThemeColors(context);
+ showDialog(
+ context: context,
+ builder: (context) => AlertDialog(
+ backgroundColor: colors.surface,
+ title: Text(
+ 'Delete Conversation',
+ style: TextStyles.cardTitle.copyWith(color: colors.onSurface),
+ ),
+ content: Text(
+ 'Are you sure you want to delete "${conversation.title}"? This action cannot be undone.',
+ style: TextStyles.bodyMedium.copyWith(color: colors.onSurfaceVariant),
+ ),
+ actions: [
+ TextButton(
+ onPressed: () => Navigator.of(context).pop(),
+ child: Text('Cancel', style: TextStyle(color: colors.onSurfaceVariant)),
+ ),
+ TextButton(
+ onPressed: () async {
+ Navigator.of(context).pop();
+ final deleteConversation = ref.read(deleteConversationProvider);
+ await deleteConversation(conversation.id);
+ },
+ child: Text('Delete', style: TextStyle(color: colors.error)),
+ ),
+ ],
  ),
  );
  }
@@ -935,25 +983,37 @@ class _ModelItem extends StatelessWidget {
 }
 
 // Conversation item for dashboard
-class _ConversationItem extends StatelessWidget {
+class _ConversationItem extends StatefulWidget {
  final Conversation conversation;
  final VoidCallback onTap;
+ final VoidCallback onDelete;
 
  const _ConversationItem({
  required this.conversation,
  required this.onTap,
+ required this.onDelete,
  });
+
+ @override
+ State<_ConversationItem> createState() => _ConversationItemState();
+}
+
+class _ConversationItemState extends State<_ConversationItem> {
+ bool _isHovered = false;
 
  @override
  Widget build(BuildContext context) {
  final colors = ThemeColors(context);
- final isAgentConversation = conversation.metadata?['type'] == 'agent';
- final agentName = conversation.metadata?['agentName'] as String?;
- 
- return Material(
+ final isAgentConversation = widget.conversation.metadata?['type'] == 'agent';
+ final agentName = widget.conversation.metadata?['agentName'] as String?;
+
+ return MouseRegion(
+ onEnter: (_) => setState(() => _isHovered = true),
+ onExit: (_) => setState(() => _isHovered = false),
+ child: Material(
  color: Colors.transparent,
  child: InkWell(
- onTap: onTap,
+ onTap: widget.onTap,
  borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
  hoverColor: colors.primary.withValues(alpha: 0.04),
  splashColor: colors.primary.withValues(alpha: 0.12),
@@ -962,12 +1022,14 @@ class _ConversationItem extends StatelessWidget {
  vertical: SpacingTokens.componentSpacing,
  horizontal: SpacingTokens.xs_precise,
  ),
- child: Row(
+ child: Stack(
+ children: [
+ Row(
  children: [
  Container(
  padding: const EdgeInsets.all(SpacingTokens.iconSpacing),
  decoration: BoxDecoration(
- color: isAgentConversation 
+ color: isAgentConversation
  ? colors.primary.withValues(alpha: 0.1)
  : colors.surfaceVariant,
  borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
@@ -975,7 +1037,7 @@ class _ConversationItem extends StatelessWidget {
  child: Icon(
  isAgentConversation ? Icons.smart_toy : Icons.chat,
  size: 16,
- color: isAgentConversation 
+ color: isAgentConversation
  ? colors.primary
  : colors.onSurfaceVariant,
  ),
@@ -988,7 +1050,7 @@ class _ConversationItem extends StatelessWidget {
  Text(
  isAgentConversation && agentName != null
  ? agentName
- : conversation.title,
+ : widget.conversation.title,
  style: TextStyles.bodyMedium.copyWith(
  color: colors.onSurface,
  fontWeight: FontWeight.w500,
@@ -998,7 +1060,7 @@ class _ConversationItem extends StatelessWidget {
  ),
  const SizedBox(height: SpacingTokens.xs_precise),
  Text(
- _getConversationTypeDescription(conversation),
+ _getConversationTypeDescription(widget.conversation),
  style: TextStyles.caption.copyWith(
  color: colors.onSurfaceVariant,
  ),
@@ -1007,12 +1069,36 @@ class _ConversationItem extends StatelessWidget {
  ),
  ),
  Text(
- _formatTime(conversation.createdAt),
+ _formatTime(widget.conversation.createdAt),
  style: TextStyles.caption.copyWith(
  color: colors.onSurfaceVariant,
  ),
  ),
+ const SizedBox(width: SpacingTokens.md),
  ],
+ ),
+ if (_isHovered)
+ Positioned(
+ top: 0,
+ right: 0,
+ child: GestureDetector(
+ onTap: widget.onDelete,
+ child: Container(
+ padding: const EdgeInsets.all(4),
+ decoration: BoxDecoration(
+ color: colors.error.withValues(alpha: 0.1),
+ borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+ ),
+ child: Icon(
+ Icons.close,
+ size: 14,
+ color: colors.error,
+ ),
+ ),
+ ),
+ ),
+ ],
+ ),
  ),
  ),
  ),

@@ -401,10 +401,13 @@ class _MvpChatScreenState extends ConsumerState<MvpChatScreen> {
                         ),
                       ),
                       const SizedBox(width: SpacingTokens.iconSpacing),
-                      Text(
-                        'Searching the web...',
-                        style: TextStyles.bodySmall.copyWith(
-                          color: colors.onSurfaceVariant,
+                      Flexible(
+                        child: Text(
+                          'Searching the web...',
+                          style: TextStyles.bodySmall.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -855,8 +858,9 @@ class _SettingsPanelState extends ConsumerState<_SettingsPanel> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: scheme.colors.map((c) => Container(
-                                      width: 14,
-                                      height: 14,
+                                      width: 8,
+                                      height: 8,
+                                      margin: const EdgeInsets.symmetric(horizontal: 1),
                                       decoration: BoxDecoration(
                                         color: c,
                                         shape: BoxShape.circle,

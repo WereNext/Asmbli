@@ -75,11 +75,15 @@ class EnhancedVerificationRequest {
   final String situation;
   final List<ProposedAction> proposedActions;
   final VoidCallback? onChat;
+  final String? codeBefore;  // Optional: code before changes (for coding agent)
+  final String? codeAfter;   // Optional: code after changes (for coding agent)
 
   const EnhancedVerificationRequest({
     required this.title,
     required this.situation,
     required this.proposedActions,
     this.onChat,
+    this.codeBefore,
+    this.codeAfter,
   });
 }

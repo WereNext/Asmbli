@@ -61,7 +61,9 @@
       "Bash(pkill:*)",
       "WebFetch(domain:dspy.ai)",
       "Bash(taskkill:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(nc:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": [],

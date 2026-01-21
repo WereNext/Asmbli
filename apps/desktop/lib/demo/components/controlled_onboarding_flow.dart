@@ -292,7 +292,10 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
         children: [
           // Back button
           IconButton(
-            onPressed: () => context.go(AppRoutes.demoOnboarding),
+            onPressed: () {
+              if (!mounted) return;
+              context.go(AppRoutes.demoOnboarding);
+            },
             icon: Icon(Icons.arrow_back, color: colors.onSurface),
             tooltip: 'Back to Agent Selection',
           ),
@@ -306,12 +309,17 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
           ),
           
           const Spacer(),
-          
+
           // Progress indicator (simplified)
           Text(
             'Step ${_currentStep + 1} of 5',
             style: TextStyles.bodyMedium.copyWith(color: colors.onSurfaceVariant),
           ),
+
+          const SizedBox(width: SpacingTokens.md),
+
+          // Theme toggle
+          const ThemeToggle(),
         ],
       ),
     );
@@ -923,25 +931,25 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
             style: TextStyles.bodyMedium.copyWith(color: colors.onSurfaceVariant),
           ),
           
-          const SizedBox(height: SpacingTokens.xl),
-          
+          const SizedBox(height: SpacingTokens.lg),
+
           Expanded(
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: SpacingTokens.lg,
-                mainAxisSpacing: SpacingTokens.lg,
-                childAspectRatio: 1.2,
+                crossAxisSpacing: SpacingTokens.md,
+                mainAxisSpacing: SpacingTokens.md,
+                childAspectRatio: 1.6, // Compact cards to fit content without extra whitespace
               ),
               itemCount: flowTypes.length,
               itemBuilder: (context, index) {
                 final flowType = flowTypes[index];
                 final isSelected = _flowType == flowType.name;
-                
+
                 return GestureDetector(
                   onTap: () => setState(() => _flowType = flowType.name),
                   child: Container(
-                    padding: const EdgeInsets.all(SpacingTokens.lg),
+                    padding: const EdgeInsets.all(SpacingTokens.md),
                     decoration: BoxDecoration(
                       color: isSelected ? colors.primary.withOpacity(0.1) : colors.surface,
                       borderRadius: BorderRadius.circular(BorderRadiusTokens.lg),
@@ -951,31 +959,113 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
                       ),
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          flowType.icon,
-                          size: 48,
-                          color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                        // Icon and deliverable type badge
+                        Row(
+                          children: [
+                            Icon(
+                              flowType.icon,
+                              size: 28,
+                              color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: SpacingTokens.sm,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? colors.primary.withOpacity(0.2)
+                                    : colors.onSurfaceVariant.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(BorderRadiusTokens.sm),
+                              ),
+                              child: Text(
+                                flowType.deliverableType,
+                                style: TextStyles.bodySmall.copyWith(
+                                  color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: SpacingTokens.md),
+                        const SizedBox(height: SpacingTokens.sm),
+
+                        // Title
                         Text(
                           flowType.name,
-                          style: TextStyles.bodyLarge.copyWith(
+                          style: TextStyles.bodyMedium.copyWith(
                             color: isSelected ? colors.primary : colors.onSurface,
                             fontWeight: FontWeight.w600,
                           ),
-                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: SpacingTokens.sm),
+                        const SizedBox(height: 4),
+
+                        // Estimated time with icon
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.schedule,
+                              size: 12,
+                              color: colors.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              flowType.estimatedTime,
+                              style: TextStyles.bodySmall.copyWith(
+                                color: colors.onSurfaceVariant,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: SpacingTokens.xs),
+
+                        // Description
                         Text(
                           flowType.description,
                           style: TextStyles.bodySmall.copyWith(
                             color: colors.onSurfaceVariant,
+                            fontSize: 11,
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 3,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
+
+                        // Key features with checkmark bullets
+                        if (flowType.keyFeatures.isNotEmpty) ...[
+                          const SizedBox(height: SpacingTokens.xs),
+                          ...flowType.keyFeatures.take(2).map((feature) => Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  size: 11,
+                                  color: isSelected ? colors.primary : colors.success.withOpacity(0.6),
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    feature,
+                                    style: TextStyles.bodySmall.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                      fontSize: 10,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                        ],
                       ],
                     ),
                   ),
@@ -1243,30 +1333,37 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   }
 
   void _goToNextStep() {
+    if (!mounted) return;
     if (_currentStep < 4) {
       setState(() => _currentStep++);
-      _pageController.animateToPage(
-        _currentStep,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      if (mounted) {
+        _pageController.animateToPage(
+          _currentStep,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     } else {
       _completeOnboarding();
     }
   }
 
   void _goToPreviousStep() {
+    if (!mounted) return;
     if (_currentStep > 0) {
       setState(() => _currentStep--);
-      _pageController.animateToPage(
-        _currentStep,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      if (mounted) {
+        _pageController.animateToPage(
+          _currentStep,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
   void _completeOnboarding() {
+    if (!mounted) return;
     final data = OnboardingData(
       ingredients: _ingredients,
       researchTopic: _researchTopic,
@@ -1278,14 +1375,14 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
       flowType: _flowType!,
       flowOptions: _flowOptions,
     );
-    
+
     widget.onComplete?.call(data);
   }
 
   void _showDocumentUpload() {
     // Mock document upload - in real implementation would open file picker
     List<IngredientItem> mockDocs;
-    
+
     switch (widget.selectedAgentType) {
       case 0: // Business Analyst
         mockDocs = [
@@ -1303,25 +1400,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
           ),
         ];
         break;
-        
-      case 1: // Design Assistant
-        mockDocs = [
-          IngredientItem(
-            type: IngredientType.document,
-            title: 'Design Brief.pdf',
-            subtitle: '1.2 MB • Project Requirements',
-            icon: Icons.picture_as_pdf,
-          ),
-          IngredientItem(
-            type: IngredientType.document,
-            title: 'Brand Guidelines.sketch',
-            subtitle: '3.4 MB • Sketch File',
-            icon: Icons.design_services,
-          ),
-        ];
-        break;
-        
-      case 2: // Operations Manager
+
+      case 1: // Operations Manager
         mockDocs = [
           IngredientItem(
             type: IngredientType.document,
@@ -1337,8 +1417,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
           ),
         ];
         break;
-        
-      case 3: // Coding Agent
+
+      case 2: // Coding Agent
         mockDocs = [
           IngredientItem(
             type: IngredientType.document,
@@ -1360,7 +1440,7 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
           ),
         ];
         break;
-        
+
       default:
         mockDocs = [
           IngredientItem(
@@ -1372,12 +1452,15 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
         ];
     }
 
-    setState(() {
-      _ingredients.addAll(mockDocs);
-    });
+    if (mounted) {
+      setState(() {
+        _ingredients.addAll(mockDocs);
+      });
+    }
   }
 
   void _showResearchTopicDialog() {
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) {
@@ -1399,8 +1482,11 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
             ),
             ElevatedButton(
               onPressed: () {
-                setState(() => _researchTopic = controller.text.trim());
+                final text = controller.text.trim();
                 Navigator.pop(context);
+                if (mounted) {
+                  setState(() => _researchTopic = text);
+                }
               },
               child: const Text('Add'),
             ),
@@ -1411,6 +1497,7 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   }
 
   void _removeIngredient(IngredientItem ingredient) {
+    if (!mounted) return;
     setState(() {
       _ingredients.remove(ingredient);
       if (ingredient.type == IngredientType.research) {
@@ -1422,9 +1509,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   IconData _getAgentIcon() {
     switch (widget.selectedAgentType) {
       case 0: return Icons.analytics; // Business Analyst
-      case 1: return Icons.palette; // Design Assistant  
-      case 2: return Icons.schedule; // Operations Manager
-      case 3: return Icons.code; // Coding Agent
+      case 1: return Icons.schedule; // Operations Manager
+      case 2: return Icons.code; // Coding Agent
       default: return Icons.auto_awesome;
     }
   }
@@ -1534,9 +1620,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   String _getAgentName() {
     switch (widget.selectedAgentType) {
       case 0: return 'Business Analyst AI';
-      case 1: return 'Design Assistant AI';
-      case 2: return 'Operations Manager AI';
-      case 3: return 'Coding Agent AI';
+      case 1: return 'Operations Manager AI';
+      case 2: return 'Coding Agent AI';
       default: return 'AI Agent';
     }
   }
@@ -1544,8 +1629,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   String _getIngredientsTitle() {
     switch (widget.selectedAgentType) {
       case 0: return 'What data should we analyze?';
-      case 1: return 'What should we design?';
-      case 2: return 'What operations should we optimize?';
+      case 1: return 'What operations should we optimize?';
+      case 2: return 'What should we build?';
       default: return 'What are we working on?';
     }
   }
@@ -1553,29 +1638,32 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   String _getIngredientsDescription() {
     switch (widget.selectedAgentType) {
       case 0: return 'Add business data, reports, or research topics for comprehensive analysis and insights.';
-      case 1: return 'Add design briefs, mockups, or project requirements to create stunning designs.';
-      case 2: return 'Add schedules, processes, or operational data to streamline and optimize workflows.';
+      case 1: return 'Add schedules, processes, or operational data to streamline and optimize workflows.';
+      case 2: return 'Add codebase, requirements, or technical specs to build applications and features.';
       default: return 'Add documents, data sources, or research topics for AI analysis.';
     }
   }
 
   void _jumpToStep(int stepIndex) {
+    if (!mounted) return;
     // Only allow jumping to completed steps or the next step
     if (stepIndex <= _currentStep || stepIndex == _currentStep + 1) {
       setState(() => _currentStep = stepIndex);
-      _pageController.animateToPage(
-        stepIndex,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      if (mounted) {
+        _pageController.animateToPage(
+          stepIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
   String _getUploadDocumentsTitle() {
     switch (widget.selectedAgentType) {
       case 0: return 'Upload Business Data';
-      case 1: return 'Upload Design Files';
-      case 2: return 'Upload Operation Files';
+      case 1: return 'Upload Operation Files';
+      case 2: return 'Upload Code & Docs';
       default: return 'Upload Documents';
     }
   }
@@ -1583,8 +1671,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   String _getUploadDocumentsSubtitle() {
     switch (widget.selectedAgentType) {
       case 0: return 'Sales reports, financial data, market analysis';
-      case 1: return 'Mockups, design briefs, brand guidelines';
-      case 2: return 'Schedules, process docs, team resources';
+      case 1: return 'Schedules, process docs, team resources';
+      case 2: return 'Codebase, requirements, API specs';
       default: return 'PDFs, Word docs, spreadsheets, etc.';
     }
   }
@@ -1592,9 +1680,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   IconData _getUploadDocumentsIcon() {
     switch (widget.selectedAgentType) {
       case 0: return Icons.analytics;
-      case 1: return Icons.design_services;
-      case 2: return Icons.schedule;
-      case 3: return Icons.code;
+      case 1: return Icons.schedule;
+      case 2: return Icons.code;
       default: return Icons.upload_file;
     }
   }
@@ -1602,9 +1689,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   String _getResearchTopicTitle() {
     switch (widget.selectedAgentType) {
       case 0: return 'Market Research';
-      case 1: return 'Design Inspiration';
-      case 2: return 'Process Research';
-      case 3: return 'Technical Research';
+      case 1: return 'Process Research';
+      case 2: return 'Technical Research';
       default: return 'Research Topic';
     }
   }
@@ -1612,9 +1698,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   String _getResearchTopicSubtitle() {
     switch (widget.selectedAgentType) {
       case 0: return 'Industry trends, competitor analysis, market data';
-      case 1: return 'Design trends, UI patterns, style references';
-      case 2: return 'Best practices, optimization strategies, tools';
-      case 3: return 'Framework comparisons, architecture patterns, libraries';
+      case 1: return 'Best practices, optimization strategies, tools';
+      case 2: return 'Framework comparisons, architecture patterns, libraries';
       default: return 'Let AI research a specific topic for you';
     }
   }
@@ -1622,9 +1707,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   String _getResearchTopicPlaceholder() {
     switch (widget.selectedAgentType) {
       case 0: return 'e.g., "Q1 2024 SaaS market trends and competitor analysis"';
-      case 1: return 'e.g., "Modern dashboard design patterns for project management tools"';
-      case 2: return 'e.g., "Best practices for team scheduling optimization in remote environments"';
-      case 3: return 'e.g., "Comparing React vs Vue.js performance for real-time applications"';
+      case 1: return 'e.g., "Best practices for team scheduling optimization in remote environments"';
+      case 2: return 'e.g., "Comparing React vs Vue.js performance for real-time applications"';
       default: return 'e.g., "Latest trends in AI automation"';
     }
   }
@@ -1659,35 +1743,7 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
           ]),
         ];
         
-      case 1: // Design Assistant
-        return [
-          ToolCategory('Design Tools', [
-            ToolOption('Figma', Icons.design_services),
-            ToolOption('Sketch', Icons.brush),
-            ToolOption('Adobe XD', Icons.layers),
-            ToolOption('Framer', Icons.animation),
-            ToolOption('InVision', Icons.preview),
-            ToolOption('Principle', Icons.play_circle),
-          ]),
-          ToolCategory('Development', [
-            ToolOption('GitHub', Icons.code),
-            ToolOption('VS Code', Icons.edit_note),
-            ToolOption('Storybook', Icons.library_books),
-            ToolOption('Zeplin', Icons.straighten),
-            ToolOption('Abstract', Icons.history),
-            ToolOption('Linear', Icons.linear_scale),
-          ]),
-          ToolCategory('Collaboration', [
-            ToolOption('Miro', Icons.dashboard_customize),
-            ToolOption('FigJam', Icons.edit),
-            ToolOption('Whimsical', Icons.schema),
-            ToolOption('Notion', Icons.description),
-            ToolOption('Slack', Icons.chat),
-            ToolOption('Discord', Icons.forum),
-          ]),
-        ];
-        
-      case 2: // Operations Manager
+      case 1: // Operations Manager
         return [
           ToolCategory('Project Management', [
             ToolOption('Linear', Icons.linear_scale),
@@ -1714,8 +1770,8 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
             ToolOption('Kubernetes', Icons.cloud_queue),
           ]),
         ];
-        
-      case 3: // Coding Agent
+
+      case 2: // Coding Agent
         return [
           ToolCategory('Development Tools', [
             ToolOption('VS Code', Icons.edit_note),
@@ -1773,6 +1829,7 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
   }
 
   void _toggleTool(String toolName) {
+    if (!mounted) return;
     setState(() {
       if (_selectedTools.contains(toolName)) {
         _selectedTools.remove(toolName);
@@ -1786,44 +1843,154 @@ class _ControlledOnboardingFlowState extends ConsumerState<ControlledOnboardingF
     switch (widget.selectedAgentType) {
       case 0: // Business Analyst
         return [
-          FlowOption('Analysis Report', 'Generate comprehensive data analysis and insights', Icons.analytics),
-          FlowOption('Interactive Dashboard', 'Create live dashboard artifact with visualizations', Icons.dashboard),
-          FlowOption('Decision Support', 'Provide actionable recommendations for stakeholders', Icons.lightbulb),
-          FlowOption('Continuous Monitoring', 'Ongoing analysis with automated alerts', Icons.notifications),
+          FlowOption(
+            'Analysis Report',
+            'Generate comprehensive data analysis and insights',
+            Icons.analytics,
+            estimatedTime: '3-5 min',
+            keyFeatures: ['Sales trends', 'Revenue forecasts', 'Customer retention'],
+            deliverableType: 'Interactive Report',
+          ),
+          FlowOption(
+            'Interactive Dashboard',
+            'Create live dashboard artifact with visualizations',
+            Icons.dashboard,
+            estimatedTime: '5-7 min',
+            keyFeatures: ['Real-time charts', 'KPI tracking', 'Data filtering'],
+            deliverableType: 'Live Dashboard',
+          ),
+          FlowOption(
+            'Decision Support',
+            'Provide actionable recommendations for stakeholders',
+            Icons.lightbulb,
+            estimatedTime: '4-6 min',
+            keyFeatures: ['Strategic insights', 'Risk analysis', 'Action items'],
+            deliverableType: 'Decision Guide',
+          ),
+          FlowOption(
+            'Continuous Monitoring',
+            'Ongoing analysis with automated alerts',
+            Icons.notifications,
+            estimatedTime: '6-8 min',
+            keyFeatures: ['Anomaly detection', 'Threshold alerts', 'Weekly reports'],
+            deliverableType: 'Monitoring System',
+          ),
         ];
-        
-      case 1: // Design Assistant  
+
+      case 1: // Operations Manager
         return [
-          FlowOption('Design System Artifact', 'Generate complete design system with components', Icons.design_services),
-          FlowOption('Interactive Prototype', 'Create clickable prototype artifact', Icons.touch_app),
-          FlowOption('Design Documentation', 'Comprehensive design specs and guidelines', Icons.description),
-          FlowOption('User Testing Plan', 'Structured testing scenarios and validation', Icons.science),
+          FlowOption(
+            'Automation Playbook',
+            'Generate workflow automation artifacts',
+            Icons.auto_awesome,
+            estimatedTime: '4-6 min',
+            keyFeatures: ['Process maps', 'Task automation', 'Integration guides'],
+            deliverableType: 'Automation Guide',
+          ),
+          FlowOption(
+            'Process Documentation',
+            'Create comprehensive operational procedures',
+            Icons.list_alt,
+            estimatedTime: '5-7 min',
+            keyFeatures: ['SOPs', 'Workflow diagrams', 'Best practices'],
+            deliverableType: 'Documentation Set',
+          ),
+          FlowOption(
+            'Performance Dashboard',
+            'Live metrics and KPI tracking artifact',
+            Icons.speed,
+            estimatedTime: '5-8 min',
+            keyFeatures: ['Team capacity', 'Schedule efficiency', 'Resource utilization'],
+            deliverableType: 'Metrics Dashboard',
+          ),
+          FlowOption(
+            'Continuous Optimization',
+            'Ongoing process improvement and alerts',
+            Icons.trending_up,
+            estimatedTime: '6-9 min',
+            keyFeatures: ['Performance tracking', 'Bottleneck alerts', 'Optimization recommendations'],
+            deliverableType: 'Optimization Engine',
+          ),
         ];
-        
-      case 2: // Operations Manager
+
+      case 2: // Coding Agent
         return [
-          FlowOption('Automation Playbook', 'Generate workflow automation artifacts', Icons.auto_awesome),
-          FlowOption('Process Documentation', 'Create comprehensive operational procedures', Icons.list_alt),
-          FlowOption('Performance Dashboard', 'Live metrics and KPI tracking artifact', Icons.speed),
-          FlowOption('Continuous Optimization', 'Ongoing process improvement and alerts', Icons.trending_up),
+          FlowOption(
+            'Refactor Codebase',
+            'Modernize and optimize existing code',
+            Icons.autorenew,
+            estimatedTime: '6-10 min',
+            keyFeatures: ['Code cleanup', 'Performance optimization', 'Best practices'],
+            deliverableType: 'Refactored Code',
+          ),
+          FlowOption(
+            'API Development',
+            'Create REST/GraphQL APIs with documentation',
+            Icons.api,
+            estimatedTime: '7-11 min',
+            keyFeatures: ['API endpoints', 'OpenAPI docs', 'Authentication'],
+            deliverableType: 'API Service',
+          ),
+          FlowOption(
+            'Test Suite Creation',
+            'Generate comprehensive unit and integration tests',
+            Icons.check_circle,
+            estimatedTime: '5-8 min',
+            keyFeatures: ['Unit tests', 'Integration tests', 'Coverage reports'],
+            deliverableType: 'Test Suite',
+          ),
+          FlowOption(
+            'DevOps Pipeline',
+            'Setup CI/CD with monitoring and deployment',
+            Icons.account_tree,
+            estimatedTime: '8-12 min',
+            keyFeatures: ['GitHub Actions', 'Auto-deploy', 'Health checks'],
+            deliverableType: 'CI/CD Pipeline',
+          ),
+          FlowOption(
+            'Code Review Assistant',
+            'Continuous code review and optimization',
+            Icons.rate_review,
+            estimatedTime: '4-7 min',
+            keyFeatures: ['Static analysis', 'Security checks', 'Code suggestions'],
+            deliverableType: 'Review System',
+          ),
         ];
-        
-      case 3: // Coding Agent
-        return [
-          FlowOption('Generate Application', 'Build complete application with tests and CI/CD', Icons.rocket_launch),
-          FlowOption('Refactor Codebase', 'Modernize and optimize existing code', Icons.autorenew),
-          FlowOption('API Development', 'Create REST/GraphQL APIs with documentation', Icons.api),
-          FlowOption('Test Suite Creation', 'Generate comprehensive unit and integration tests', Icons.check_circle),
-          FlowOption('DevOps Pipeline', 'Setup CI/CD with monitoring and deployment', Icons.account_tree),
-          FlowOption('Code Review Assistant', 'Continuous code review and optimization', Icons.rate_review),
-        ];
-        
+
       default:
         return [
-          FlowOption('Analysis Report', 'Generate comprehensive analysis and insights', Icons.analytics),
-          FlowOption('Action Plan', 'Create executable action items and next steps', Icons.checklist),
-          FlowOption('Decision Support', 'Provide recommendations for decision making', Icons.lightbulb),
-          FlowOption('Continuous Monitoring', 'Ongoing analysis and alerts', Icons.notifications),
+          FlowOption(
+            'Analysis Report',
+            'Generate comprehensive analysis and insights',
+            Icons.analytics,
+            estimatedTime: '3-5 min',
+            keyFeatures: ['Data analysis', 'Trend identification', 'Insights'],
+            deliverableType: 'Report',
+          ),
+          FlowOption(
+            'Action Plan',
+            'Create executable action items and next steps',
+            Icons.checklist,
+            estimatedTime: '4-6 min',
+            keyFeatures: ['Task breakdown', 'Priorities', 'Timeline'],
+            deliverableType: 'Action Plan',
+          ),
+          FlowOption(
+            'Decision Support',
+            'Provide recommendations for decision making',
+            Icons.lightbulb,
+            estimatedTime: '4-6 min',
+            keyFeatures: ['Options analysis', 'Risk assessment', 'Recommendations'],
+            deliverableType: 'Decision Guide',
+          ),
+          FlowOption(
+            'Continuous Monitoring',
+            'Ongoing analysis and alerts',
+            Icons.notifications,
+            estimatedTime: '5-7 min',
+            keyFeatures: ['Alerts', 'Tracking', 'Reports'],
+            deliverableType: 'Monitoring',
+          ),
         ];
     }
   }
@@ -1926,8 +2093,18 @@ class FlowOption {
   final String name;
   final String description;
   final IconData icon;
+  final String estimatedTime;
+  final List<String> keyFeatures;
+  final String deliverableType;
 
-  FlowOption(this.name, this.description, this.icon);
+  FlowOption(
+    this.name,
+    this.description,
+    this.icon, {
+    this.estimatedTime = '~5 min',
+    this.keyFeatures = const [],
+    this.deliverableType = 'Artifact',
+  });
 }
 
 class StepInfo {

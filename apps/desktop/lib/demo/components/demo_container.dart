@@ -89,7 +89,10 @@ class _DemoContainerState extends State<DemoContainer> {
         children: [
           // Back button
           IconButton(
-            onPressed: () => context.go(AppRoutes.demoOnboarding),
+            onPressed: () {
+              if (!mounted) return;
+              context.go(AppRoutes.demoOnboarding);
+            },
             icon: Icon(Icons.arrow_back, color: colors.onSurface),
             tooltip: 'Back to Agent Selection',
           ),
@@ -135,10 +138,18 @@ class _DemoContainerState extends State<DemoContainer> {
           ),
           
           const SizedBox(width: SpacingTokens.md),
-          
+
+          // Theme toggle
+          const ThemeToggle(),
+
+          const SizedBox(width: SpacingTokens.sm),
+
           // Toggle sidebar
           IconButton(
-            onPressed: () => setState(() => _showSidebar = !_showSidebar),
+            onPressed: () {
+              if (!mounted) return;
+              setState(() => _showSidebar = !_showSidebar);
+            },
             icon: Icon(
               _showSidebar ? Icons.close : Icons.settings,
               color: colors.onSurface,
