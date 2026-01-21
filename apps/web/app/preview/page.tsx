@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, Download, Lock, Shield, Sparkles, Monitor, Palette, Cpu } from 'lucide-react';
 
-const PREVIEW_PASSWORD = 'asmbli2024preview'; // Simple client-side check for MVP
+const PREVIEW_PASSWORD = 'asmbli2025'; // Simple client-side check for MVP
 
 interface DownloadInfo {
   platform: string;
