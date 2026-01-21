@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Download, Lock, Shield, Sparkles, Monitor, Palette, Cpu } from 'lucide-react';
+import { CheckCircle, Download, Lock, Shield, Sparkles, Monitor, Palette, Cpu, AlertTriangle } from 'lucide-react';
 
 const PREVIEW_PASSWORD = 'asmbli2025'; // Simple client-side check for MVP
 
@@ -277,28 +277,110 @@ export default function PreviewDownloadPage() {
           </div>
         </div>
 
+        {/* Installation Instructions */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <Card className="bg-amber-900/20 border-amber-700/50 mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-400">
+                <AlertTriangle className="w-5 h-5" />
+                Important: Security Bypass Required
+              </CardTitle>
+              <CardDescription className="text-amber-200/70">
+                Since this is a preview build, it's not code-signed. You'll need to bypass security warnings to run it.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* macOS Instructions */}
+            <Card className="bg-neutral-800/50 border-neutral-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-lg bg-neutral-600 flex items-center justify-center text-sm font-bold">
+                    MAC
+                  </span>
+                  macOS Installation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                    <p className="text-sm text-neutral-300">Extract the ZIP file to your Applications folder</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                    <p className="text-sm text-neutral-300">Double-click the app — macOS will block it initially</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                    <p className="text-sm text-neutral-300">Open <strong>System Settings → Privacy & Security</strong></p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
+                    <p className="text-sm text-neutral-300">Scroll down and click <strong>"Open Anyway"</strong> next to the Asmbli message</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">5</span>
+                    <p className="text-sm text-neutral-300">Click <strong>"Open"</strong> in the confirmation dialog</p>
+                  </div>
+                </div>
+                <div className="bg-neutral-900/50 rounded-lg p-3 mt-4">
+                  <p className="text-xs text-neutral-400">
+                    <strong>Tip:</strong> You only need to do this once. After allowing the app, it will open normally.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Windows Instructions */}
+            <Card className="bg-neutral-800/50 border-neutral-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold">
+                    WIN
+                  </span>
+                  Windows Installation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                    <p className="text-sm text-neutral-300">Extract the ZIP file to any folder</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                    <p className="text-sm text-neutral-300">Double-click <strong>asmbli.exe</strong> to run</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                    <p className="text-sm text-neutral-300">If SmartScreen appears, click <strong>"More info"</strong> then <strong>"Run anyway"</strong></p>
+                  </div>
+                </div>
+                <div className="bg-neutral-900/50 rounded-lg p-3 mt-4">
+                  <p className="text-xs text-neutral-400">
+                    <strong>Note:</strong> Windows Defender may scan the file on first run. This is normal for unsigned applications.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         {/* Quick Start */}
         <Card className="max-w-3xl mx-auto bg-neutral-800/50 border-neutral-700 mb-12">
           <CardHeader>
-            <CardTitle className="text-white">Quick Start</CardTitle>
+            <CardTitle className="text-white">After Installation</CardTitle>
             <CardDescription className="text-neutral-400">
-              Get up and running in 3 easy steps
+              Get up and running in 2 easy steps
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
               <div className="text-center">
                 <div className="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center mx-auto mb-3 font-bold">
                   1
-                </div>
-                <h4 className="font-semibold text-white mb-2">Extract ZIP</h4>
-                <p className="text-sm text-neutral-400">
-                  Unzip to any folder and run the executable
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center mx-auto mb-3 font-bold">
-                  2
                 </div>
                 <h4 className="font-semibold text-white mb-2">Add API Key</h4>
                 <p className="text-sm text-neutral-400">
@@ -307,7 +389,7 @@ export default function PreviewDownloadPage() {
               </div>
               <div className="text-center">
                 <div className="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center mx-auto mb-3 font-bold">
-                  3
+                  2
                 </div>
                 <h4 className="font-semibold text-white mb-2">Start Chatting</h4>
                 <p className="text-sm text-neutral-400">
