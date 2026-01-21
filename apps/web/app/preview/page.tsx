@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Download, Lock, Shield, Sparkles, Monitor, Palette, Cpu, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Download, Lock, Shield, Sparkles, Monitor, Palette, Cpu, AlertTriangle, ExternalLink } from 'lucide-react';
 
 const PREVIEW_PASSWORD = 'asmbli2025'; // Simple client-side check for MVP
 
@@ -396,6 +396,68 @@ export default function PreviewDownloadPage() {
                   Customize your agent and begin conversations
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ollama Local Setup */}
+        <Card className="max-w-3xl mx-auto bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-700/50 mb-12">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-purple-400" />
+              Run AI Locally with Ollama (Free)
+            </CardTitle>
+            <CardDescription className="text-purple-200/70">
+              No API key needed — run open-source AI models completely offline on your own machine
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                <div className="text-sm text-neutral-300">
+                  <strong>Download Ollama</strong> from{' '}
+                  <a
+                    href="https://ollama.com/download"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    ollama.com/download
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                <div className="text-sm text-neutral-300">
+                  <strong>Install and run Ollama</strong> — it runs in the background
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                <div className="text-sm text-neutral-300">
+                  <strong>Pull a model</strong> — open Terminal and run:
+                  <code className="block mt-2 px-3 py-2 bg-neutral-900 rounded text-purple-300 font-mono text-xs">
+                    ollama pull gpt-oss:20b
+                  </code>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
+                <div className="text-sm text-neutral-300">
+                  <strong>Enable Ollama in Asmbli</strong> — go to Settings and toggle on Ollama
+                </div>
+              </div>
+            </div>
+            <div className="bg-neutral-900/50 rounded-lg p-3 mt-4">
+              <p className="text-xs text-neutral-400">
+                <strong>Recommended models:</strong>{' '}
+                <code className="text-purple-300">gpt-oss:20b</code> (OpenAI, runs on 16GB RAM),{' '}
+                <code className="text-purple-300">gpt-oss:120b</code> (full power, needs 80GB VRAM),{' '}
+                <code className="text-purple-300">llama3.2</code> (3B, lightweight),{' '}
+                <code className="text-purple-300">deepseek-r1</code> (reasoning)
+              </p>
             </div>
           </CardContent>
         </Card>
