@@ -401,7 +401,7 @@ export default function PreviewDownloadPage() {
         </Card>
 
         {/* Ollama Local Setup */}
-        <Card className="max-w-3xl mx-auto bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-700/50 mb-12">
+        <Card className="max-w-3xl mx-auto bg-gradient-to-br from-purple-950/80 to-indigo-950/80 border-purple-700/50 mb-12">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Cpu className="w-5 h-5 text-purple-400" />
