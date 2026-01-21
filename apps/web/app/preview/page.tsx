@@ -454,8 +454,8 @@ export default function PreviewDownloadPage() {
               <p className="text-xs text-neutral-400">
                 <strong>Recommended models:</strong>{' '}
                 <code className="text-purple-300">gpt-oss:20b</code> (OpenAI, runs on 16GB RAM),{' '}
-                <code className="text-purple-300">gpt-oss:120b</code> (full power, needs 80GB VRAM),{' '}
-                <code className="text-purple-300">llama3.2</code> (3B, lightweight),{' '}
+                <code className="text-purple-300">gemma3</code> (Google, 27B),{' '}
+                <code className="text-purple-300">llama3.2</code> (Meta, lightweight),{' '}
                 <code className="text-purple-300">deepseek-r1</code> (reasoning)
               </p>
             </div>
